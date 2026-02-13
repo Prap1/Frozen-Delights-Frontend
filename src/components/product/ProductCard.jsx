@@ -23,9 +23,23 @@ const ProductCard = ({ product }) => {
                     </div>
                     <p className="text-lg font-medium text-gray-900">₹{product.price}</p>
                 </div>
-                <div className="mt-4">
-                    {/* Add to Cart button could go here, but usually on details or hover */}
-                    <span className="text-sm text-blue-600 font-medium">View Details &rarr;</span>
+                <div className="mt-4 flex justify-between items-center">
+                    <span className="text-sm text-blue-600 font-medium group-hover:underline">View Details &rarr;</span>
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            // Dispatch add to compare
+                            import('../../features/products/compareSlice').then(({ addToCompare }) => {
+                                import('../../app/store').then(({ store }) => {
+                                    store.dispatch(addToCompare(product));
+                                    alert("Added to Compare");
+                                });
+                            });
+                        }}
+                        className="text-xs bg-gray-100 px-2 py-1 rounded hover:bg-gray-200 text-gray-700 z-10 relative"
+                    >
+                        Compare
+                    </button>
                 </div>
             </div>
         </div>

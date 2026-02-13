@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from '../features/auth/authSlice';
-// import cartReducer from '../features/cart/cartSlice'; // We might need to refactor Cart too, or keep it in Context for now? User specifically asked for Auth/Navbar.
+import cartReducer from '../features/cart/cartSlice';
 // Let's create authSlice first.
 
 import productsReducer from '../features/products/productSlice';
@@ -10,6 +10,7 @@ import categoriesReducer from '../features/categories/categorySlice';
 import discountsReducer from '../features/discounts/discountSlice';
 import reviewsReducer from '../features/reviews/reviewSlice';
 import contentReducer from '../features/content/contentSlice';
+import compareReducer from '../features/products/compareSlice';
 
 export const store = configureStore({
     reducer: {
@@ -21,5 +22,7 @@ export const store = configureStore({
         discounts: discountsReducer,
         reviews: reviewsReducer,
         content: contentReducer,
+        cart: cartReducer,
+        compare: compareReducer,
     },
 });

@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import api from '../../services/api';
 
 const ProductForm = () => {
     const navigate = useNavigate();
+    const { user } = useSelector((state) => state.auth);
+
     const [formData, setFormData] = useState({
         name: '',
         price: '',
@@ -30,7 +33,13 @@ const ProductForm = () => {
 
             await api.post('/products/new', productData);
             alert('Product Created Successfully');
-            navigate('/products');
+
+            if (user?.role === 'vendor') {
+                navigate('/vendor/dashboard');
+            } else {
+                navigate('/admin/products');
+            }
+
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to create product');
         }

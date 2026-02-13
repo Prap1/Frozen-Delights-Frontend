@@ -1,29 +1,30 @@
-import { useContext } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import CartContext from '../../context/CartContext';
+import { addToCart, removeFromCart } from '../../features/cart/cartSlice';
 
 const Cart = () => {
-    const { cartItems, removeItemFromCart, addItemToCart } = useContext(CartContext);
+    const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { cartItems } = useSelector((state) => state.cart);
 
     const increaseQuantity = (item) => {
         if (item.Stock <= item.quantity) return;
         const newQty = item.quantity + 1;
-        addItemToCart({ ...item, quantity: newQty });
+        dispatch(addToCart({ ...item, quantity: newQty }));
     };
 
     const decreaseQuantity = (item) => {
         if (1 >= item.quantity) return;
         const newQty = item.quantity - 1;
-        addItemToCart({ ...item, quantity: newQty });
+        dispatch(addToCart({ ...item, quantity: newQty }));
+    };
+
+    const removeFromCartHandler = (id) => {
+        dispatch(removeFromCart(id));
     };
 
     const checkoutHandler = () => {
         navigate('/login?redirect=shipping');
-        // If logged in, login page should redirect to shipping. 
-        // We'll handle this logic in Login page or ProtectedRoute later.
-        // For now, simpler: navigate('/shipping');
-        navigate('/shipping');
     };
 
     const total = cartItems.reduce((acc, item) => acc + item.quantity * item.price, 0);
@@ -57,7 +58,7 @@ const Cart = () => {
                                         <button onClick={() => decreaseQuantity(item)} className="px-2 py-1 bg-gray-200 rounded-md">-</button>
                                         <span className="mx-2">{item.quantity}</span>
                                         <button onClick={() => increaseQuantity(item)} className="px-2 py-1 bg-gray-200 rounded-md">+</button>
-                                        <button onClick={() => removeItemFromCart(item.product)} className="ml-4 text-red-600 hover:text-red-800 text-sm font-medium">Remove</button>
+                                        <button onClick={() => removeFromCartHandler(item.product)} className="ml-4 text-red-600 hover:text-red-800 text-sm font-medium">Remove</button>
                                     </div>
                                 </div>
                             </li>

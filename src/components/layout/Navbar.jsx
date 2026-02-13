@@ -2,7 +2,7 @@ import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../features/auth/authSlice";
-import CartContext from "../../context/CartContext";
+// import CartContext from "../../context/CartContext";
 
 const Navbar = () => {
     const [mobileMenu, setMobileMenu] = useState(false);
@@ -11,9 +11,10 @@ const Navbar = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { user, isAuthenticated } = useSelector((state) => state.auth);
-    const { cartItems } = useContext(CartContext);
+    const { cartItems } = useSelector((state) => state.cart);
 
     const isAdmin = user?.role === 'admin';
+    const isVendor = user?.role === 'vendor';
 
     const handleLogout = () => {
         dispatch(logout());
@@ -33,7 +34,7 @@ const Navbar = () => {
                                 Frozen Delights
                             </span>
                         </Link>
-                        {!isAdmin && (
+                        {!isAdmin && !isVendor && (
                             <div className="hidden lg:ml-6 lg:flex lg:space-x-8">
                                 <Link to="/" className="border-transparent text-gray-500 hover:border-blue-500 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
                                     Home
@@ -51,8 +52,18 @@ const Navbar = () => {
                     {/* Right Side Icons */}
                     <div className="hidden lg:ml-6 lg:flex lg:items-center space-x-4">
 
+                        {/* Compare */}
+                        {!isAdmin && !isVendor && (
+                            <Link to="/compare" className="relative p-2 text-gray-400 hover:text-blue-500 transition-colors group">
+                                <span className="sr-only">Compare</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                            </Link>
+                        )}
+
                         {/* Cart */}
-                        {!isAdmin && (
+                        {!isAdmin && !isVendor && (
                             <Link to="/cart" className="relative p-2 text-gray-400 hover:text-blue-500 transition-colors group">
                                 <span className="sr-only">View cart</span>
                                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -85,6 +96,12 @@ const Navbar = () => {
                                     <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                         <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setAccountOpen(false)}>Your Profile</Link>
                                         <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setAccountOpen(false)}>Orders</Link>
+                                        {user?.role === 'user' && user?.vendorStatus !== 'approved' && (
+                                            <Link to="/become-vendor" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setAccountOpen(false)}>Become a Vendor</Link>
+                                        )}
+                                        {user?.role === 'vendor' && (
+                                            <Link to="/vendor/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setAccountOpen(false)}>Vendor Dashboard</Link>
+                                        )}
                                         <button
                                             onClick={handleLogout}
                                             className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
@@ -129,7 +146,7 @@ const Navbar = () => {
             {mobileMenu && (
                 <div className="lg:hidden bg-white border-t border-gray-100">
                     <div className="pt-2 pb-3 space-y-1">
-                        {!isAdmin && (
+                        {!isAdmin && !isVendor && (
                             <>
                                 <Link to="/" className="bg-blue-50 border-blue-500 text-blue-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Home</Link>
                                 <Link to="/products" className="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Our Menu</Link>
@@ -163,6 +180,12 @@ const Navbar = () => {
                             <div className="mt-3 space-y-1">
                                 <Link to="/profile" className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Your Profile</Link>
                                 <Link to="/orders" className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Orders</Link>
+                                {user?.role === 'user' && user?.vendorStatus !== 'approved' && (
+                                    <Link to="/become-vendor" className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Become a Vendor</Link>
+                                )}
+                                {user?.role === 'vendor' && (
+                                    <Link to="/vendor/dashboard" className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Vendor Dashboard</Link>
+                                )}
                                 <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-base font-medium text-red-600 hover:text-red-800 hover:bg-gray-100">Sign out</button>
                             </div>
                         )}

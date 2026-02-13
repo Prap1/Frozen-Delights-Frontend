@@ -90,22 +90,27 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Featured Section */}
-            <section className="py-16">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-                            Featured Delights
-                        </h2>
-                        <p className="mt-4 text-xl text-gray-500">
-                            Our customers' favorite picks for this week.
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {featuredProducts.slice(0, 4).map((product) => (
+            {/* New Arrivals */}
+            <div className="mb-16">
+                <div className="text-center mb-8">
+                    <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                        New Arrivals
+                    </h2>
+                    <p className="mt-4 text-xl text-gray-500">
+                        Freshly churned for you.
+                    </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {[...featuredProducts]
+                        .sort((a, b) => {
+                            const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+                            const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+                            return dateB - dateA;
+                        })
+                        .slice(0, 4)
+                        .map((product) => (
                             <motion.div
-                                key={product._id}
+                                key={`new-${product._id}`}
                                 whileHover={{ y: -10 }}
                                 className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 transition-all hover:shadow-xl"
                             >
@@ -124,7 +129,7 @@ const Home = () => {
                                             ★ {product.rating || 5.0}
                                         </span>
                                     </div>
-                                    <p className="text-2xl font-bold text-blue-600 mb-4">${product.price.toFixed(2)}</p>
+                                    <p className="text-2xl font-bold text-blue-600 mb-4">₹{product.price?.toFixed(2) || '0.00'}</p>
                                     <Link
                                         to={`/product/${product._id}`}
                                         className="block w-full py-2 px-4 bg-gray-900 text-white text-center rounded-lg font-medium hover:bg-blue-600 transition-colors"
@@ -134,18 +139,66 @@ const Home = () => {
                                 </div>
                             </motion.div>
                         ))}
-                    </div>
-
-                    <div className="mt-12 text-center">
-                        <Link
-                            to="/products"
-                            className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10 shadow-md hover:shadow-lg transition-all"
-                        >
-                            View All Products
-                        </Link>
-                    </div>
                 </div>
-            </section>
+            </div>
+
+            {/* Popular Items */}
+            <div className="mb-16">
+                <div className="text-center mb-8">
+                    <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                        Popular Choices
+                    </h2>
+                    <p className="mt-4 text-xl text-gray-500">
+                        Loved by everyone.
+                    </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {[...featuredProducts]
+                        // Sort by rating desc, assuming rating field exists or use generic fallback
+                        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+                        .slice(0, 4)
+                        .map((product) => (
+                            <motion.div
+                                key={`pop-${product._id}`}
+                                whileHover={{ y: -10 }}
+                                className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 transition-all hover:shadow-xl"
+                            >
+                                <div className="h-64 overflow-hidden relative group">
+                                    <img
+                                        src={product.images?.[0]?.url || "https://via.placeholder.com/300"}
+                                        alt={product.name}
+                                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                                    />
+                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                                </div>
+                                <div className="p-6">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h3 className="text-lg font-bold text-gray-900 line-clamp-1">{product.name}</h3>
+                                        <span className="flex items-center text-yellow-400 text-sm font-bold">
+                                            ★ {product.rating || 5.0}
+                                        </span>
+                                    </div>
+                                    <p className="text-2xl font-bold text-blue-600 mb-4">₹{product.price?.toFixed(2) || '0.00'}</p>
+                                    <Link
+                                        to={`/product/${product._id}`}
+                                        className="block w-full py-2 px-4 bg-gray-900 text-white text-center rounded-lg font-medium hover:bg-blue-600 transition-colors"
+                                    >
+                                        View Details
+                                    </Link>
+                                </div>
+                            </motion.div>
+                        ))}
+                </div>
+            </div>
+
+            <div className="mt-12 text-center">
+                <Link
+                    to="/products"
+                    className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10 shadow-md hover:shadow-lg transition-all"
+                >
+                    View All Products
+                </Link>
+            </div>
         </div>
     );
 };

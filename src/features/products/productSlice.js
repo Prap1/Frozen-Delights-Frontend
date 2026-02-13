@@ -4,11 +4,22 @@ import api from '../../services/api';
 // Fetch All Products
 export const fetchProducts = createAsyncThunk(
     'products/fetchAll',
-    async (_, { rejectWithValue }) => {
+    async ({ keyword = '', currentPage = 1, price = [0, 25000], category, ratings = 0 } = {}, { rejectWithValue }) => {
         try {
-            const response = await api.get('/products');
+            let link = `/products?keyword=${keyword}&page=${currentPage}&price[gte]=${price[0]}&price[lte]=${price[1]}`;
+
+            if (ratings > 0) {
+                link += `&ratings[gte]=${ratings}`;
+            }
+
+            if (category) {
+                link += `&category=${category}`;
+            }
+
+            const response = await api.get(link);
             return response.data;
         } catch (err) {
+            console.error("Fetch Products Error:", err.response?.data);
             return rejectWithValue(err.response?.data);
         }
     }
@@ -49,6 +60,9 @@ const productSlice = createSlice({
     name: 'products',
     initialState: {
         items: [],
+        productsCount: 0,
+        resultPerPage: 0,
+        filteredProductsCount: 0,
         product: null,
         loading: false,
         error: null,
@@ -65,10 +79,14 @@ const productSlice = createSlice({
         builder
             .addCase(fetchProducts.pending, (state) => {
                 state.loading = true;
+                state.items = [];
             })
             .addCase(fetchProducts.fulfilled, (state, action) => {
                 state.loading = false;
                 state.items = action.payload.products;
+                state.productsCount = action.payload.productsCount;
+                state.resultPerPage = action.payload.resultPerPage;
+                state.filteredProductsCount = action.payload.filteredProductsCount;
             })
             .addCase(fetchProducts.rejected, (state, action) => {
                 state.loading = false;

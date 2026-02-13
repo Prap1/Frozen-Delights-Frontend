@@ -1,7 +1,8 @@
 import { useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../services/api';
-import CartContext from '../../context/CartContext';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../../features/cart/cartSlice';
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -9,7 +10,7 @@ const ProductDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [quantity, setQuantity] = useState(1);
-    const { addItemToCart } = useContext(CartContext);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -26,15 +27,16 @@ const ProductDetails = () => {
         fetchProduct();
     }, [id]);
 
-    const addToCart = () => {
-        addItemToCart({
+    const addToCartHandler = () => {
+        dispatch(addToCart({
             product: product._id,
             name: product.name,
             price: product.price,
             image: product.images[0]?.url,
             stock: product.Stock,
-            quantity
-        });
+            quantity,
+            vendor: product.vendor
+        }));
         alert('Item Added to Cart');
     };
 
@@ -96,7 +98,7 @@ const ProductDetails = () => {
                                 </button>
                             </div>
                             <button
-                                onClick={addToCart}
+                                onClick={addToCartHandler}
                                 disabled={product.Stock < 1}
                                 className={`ml-4 flex-1 bg-blue-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${product.Stock < 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >

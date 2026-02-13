@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { login, clearError } from '../../features/auth/authSlice';
 
@@ -9,16 +9,19 @@ const Login = () => {
     const dispatch = useDispatch();
     const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const redirect = location.search ? location.search.split('=')[1] : '/';
 
     useEffect(() => {
         if (isAuthenticated && user) {
             if (user.role === 'admin') {
                 navigate('/admin/dashboard');
             } else {
-                navigate('/');
+                navigate(redirect === '/' ? '/' : `/${redirect}`);
             }
         }
-    }, [isAuthenticated, user, navigate]);
+    }, [isAuthenticated, user, navigate, redirect]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
