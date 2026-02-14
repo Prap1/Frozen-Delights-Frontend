@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { FaStar } from 'react-icons/fa';
 import HeroCarousel from '../components/ui/HeroCarousel';
 import { motion } from 'framer-motion';
 
@@ -125,9 +126,11 @@ const Home = () => {
                                 <div className="p-6">
                                     <div className="flex justify-between items-start mb-2">
                                         <h3 className="text-lg font-bold text-gray-900 line-clamp-1">{product.name}</h3>
-                                        <span className="flex items-center text-yellow-400 text-sm font-bold">
-                                            ★ {product.rating || 5.0}
-                                        </span>
+                                        <div className="flex text-yellow-400 text-sm">
+                                            {[...Array(5)].map((_, index) => (
+                                                <FaStar key={index} className={index < Math.round(product.ratings || 0) ? 'text-yellow-400' : 'text-gray-300'} />
+                                            ))}
+                                        </div>
                                     </div>
                                     <p className="text-2xl font-bold text-blue-600 mb-4">₹{product.price?.toFixed(2) || '0.00'}</p>
                                     <Link
@@ -155,7 +158,7 @@ const Home = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     {[...featuredProducts]
                         // Sort by rating desc, assuming rating field exists or use generic fallback
-                        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+                        .sort((a, b) => (b.ratings || 0) - (a.ratings || 0))
                         .slice(0, 4)
                         .map((product) => (
                             <motion.div
@@ -174,9 +177,11 @@ const Home = () => {
                                 <div className="p-6">
                                     <div className="flex justify-between items-start mb-2">
                                         <h3 className="text-lg font-bold text-gray-900 line-clamp-1">{product.name}</h3>
-                                        <span className="flex items-center text-yellow-400 text-sm font-bold">
-                                            ★ {product.rating || 5.0}
-                                        </span>
+                                        <div className="flex text-yellow-400 text-sm">
+                                            {[...Array(5)].map((_, index) => (
+                                                <FaStar key={index} className={index < Math.round(product.ratings || 0) ? 'text-yellow-400' : 'text-gray-300'} />
+                                            ))}
+                                        </div>
                                     </div>
                                     <p className="text-2xl font-bold text-blue-600 mb-4">₹{product.price?.toFixed(2) || '0.00'}</p>
                                     <Link

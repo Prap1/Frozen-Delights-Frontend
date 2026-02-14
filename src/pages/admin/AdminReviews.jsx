@@ -44,7 +44,7 @@ const AdminReviews = () => {
     const columns = [
         {
             name: 'User',
-            selector: row => row.user?.name || 'Unknown User',
+            selector: row => row.user?.username || 'Unknown User',
             sortable: true,
         },
         {

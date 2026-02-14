@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../services/api';
 
-// Fetch All Products
+// Fetch All Products (Public)
 export const fetchProducts = createAsyncThunk(
     'products/fetchAll',
     async ({ keyword = '', currentPage = 1, price = [0, 100000], category, ratings = 0 } = {}, { rejectWithValue }) => {
@@ -44,7 +44,7 @@ export const fetchProductDetails = createAsyncThunk(
     async (id, { rejectWithValue }) => {
         try {
             const response = await api.get(`/products/${id}`);
-            return response.data;
+            return response.data; // Note: Ensure backend returns { product: ... } or check if slice expects just product
         } catch (err) {
             return rejectWithValue(err.response?.data);
         }
@@ -56,8 +56,11 @@ export const createProduct = createAsyncThunk(
     'products/create',
     async (productData, { rejectWithValue }) => {
         try {
-            // let axios/api instance handle the content-type (multipart if FormData, json otherwise)
-            const response = await api.post('/products/new', productData);
+            const config = {
+                headers: { 'Content-Type': 'multipart/form-data' }, // Often needed for file uploads in product creation
+                withCredentials: true
+            };
+            const response = await api.post('/products/new', productData, config);
             return response.data;
         } catch (err) {
             return rejectWithValue(err.response?.data);
@@ -78,27 +81,51 @@ export const deleteProduct = createAsyncThunk(
     }
 );
 
+// Create Review (User)
+export const createReview = createAsyncThunk(
+    'products/createReview',
+    async (reviewData, { rejectWithValue }) => {
+        try {
+            const config = {
+                headers: { 'Content-Type': 'application/json' },
+                withCredentials: true
+            };
+            const response = await api.post(`/reviews`, reviewData, config);
+            return response.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data);
+        }
+    }
+);
+
 const productSlice = createSlice({
     name: 'products',
     initialState: {
-        items: [],
+        items: [],           // List of products (public or admin)
         productsCount: 0,
         resultPerPage: 0,
         filteredProductsCount: 0,
-        product: null,
+        product: null,       // Single product details
         loading: false,
         error: null,
-        success: false,
+        success: false,      // For Create/Delete/Review actions
     },
     reducers: {
+        clearErrors: (state) => {
+            state.error = null;
+        },
         resetProductState: (state) => {
             state.loading = false;
             state.error = null;
             state.success = false;
         },
+        resetReviewSuccess: (state) => {
+            state.success = false;
+        }
     },
     extraReducers: (builder) => {
         builder
+            // Fetch Products (Public)
             .addCase(fetchProducts.pending, (state) => {
                 state.loading = true;
                 state.items = [];
@@ -114,18 +141,36 @@ const productSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
+
+            // Fetch Products (Admin)
+            .addCase(fetchAdminProducts.pending, (state) => {
+                state.loading = true;
+                state.items = [];
+            })
+            .addCase(fetchAdminProducts.fulfilled, (state, action) => {
+                state.loading = false;
+                state.items = action.payload.products;
+            })
+            .addCase(fetchAdminProducts.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            // Fetch Details
             .addCase(fetchProductDetails.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
             .addCase(fetchProductDetails.fulfilled, (state, action) => {
                 state.loading = false;
-                state.product = action.payload.product;
+                state.product = action.payload.product; // Ensure payload structure matches
             })
             .addCase(fetchProductDetails.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })
+
+            // Create Product
             .addCase(createProduct.pending, (state) => {
                 state.loading = true;
             })
@@ -138,24 +183,34 @@ const productSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
+
+            // Delete Product
             .addCase(deleteProduct.fulfilled, (state, action) => {
                 state.loading = false;
+                // success is tricky here as it might trigger create success? Assume handled by component.
                 state.items = state.items.filter((item) => item._id !== action.payload);
             })
-            .addCase(fetchAdminProducts.pending, (state) => {
-                state.loading = true;
-                state.items = [];
-            })
-            .addCase(fetchAdminProducts.fulfilled, (state, action) => {
+            .addCase(deleteProduct.rejected, (state, action) => {
                 state.loading = false;
-                state.items = action.payload.products;
+                state.error = action.payload;
             })
-            .addCase(fetchAdminProducts.rejected, (state, action) => {
+
+            // Create Review
+            .addCase(createReview.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+                state.success = false;
+            })
+            .addCase(createReview.fulfilled, (state) => {
+                state.loading = false;
+                state.success = true;
+            })
+            .addCase(createReview.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });
     },
 });
 
-export const { resetProductState } = productSlice.actions;
+export const { clearErrors, resetProductState, resetReviewSuccess } = productSlice.actions;
 export default productSlice.reducer;

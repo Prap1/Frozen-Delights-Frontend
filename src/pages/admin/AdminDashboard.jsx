@@ -3,6 +3,29 @@ import { FaShoppingCart, FaClipboardList, FaCheckCircle, FaDollarSign, FaCalenda
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAllOrders } from '../../features/orders/orderSlice';
 import Loader from '../../components/ui/Loader';
+import { Line, Doughnut } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement,
+} from 'chart.js';
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement
+);
 
 const AdminDashboard = () => {
     const dispatch = useDispatch();
@@ -12,31 +35,74 @@ const AdminDashboard = () => {
         dispatch(fetchAllOrders());
     }, [dispatch]);
 
-    // Calculate stats from real orders
+    // Calculate stats
     const totalOrders = orders.length;
-    const pendingOrders = orders.filter(o => o.orderStatus === 'Processing').length; // Adjust status string as per API
+    const pendingOrders = orders.filter(o => o.orderStatus === 'Processing').length;
     const completedOrders = orders.filter(o => o.orderStatus === 'Delivered').length;
-
-    // Revenue is coming from backend or calculated? 
-    // orderSlice has totalAmount, let's use that or fallback
     const revenue = totalAmount;
+
+    // Process Date for Line Chart (Daily Sales - Last 7 Days)
+    const processDailySales = () => {
+        const last7Days = [...Array(7)].map((_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            return d.toISOString().split('T')[0];
+        }).reverse();
+
+        const salesData = last7Days.map(date => {
+            const dayOrders = orders.filter(o => o.createdAt.startsWith(date));
+            const dayRevenue = dayOrders.reduce((acc, curr) => acc + curr.totalPrice, 0);
+            return dayRevenue;
+        });
+
+        return { labels: last7Days, data: salesData };
+    };
+
+    const dailySalesData = processDailySales();
+
+    const lineChartData = {
+        labels: dailySalesData.labels,
+        datasets: [
+            {
+                label: 'Daily Revenue',
+                data: dailySalesData.data,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                tension: 0.3,
+            },
+        ],
+    };
+
+    const doughnutChartData = {
+        labels: ['Processing', 'Delivered', 'Cancelled'], // Add cancelled if you have it
+        datasets: [
+            {
+                label: '# of Orders',
+                data: [
+                    orders.filter(o => o.orderStatus === 'Processing').length,
+                    orders.filter(o => o.orderStatus === 'Delivered').length,
+                    orders.filter(o => o.orderStatus === 'Cancelled').length, // Assuming cancelled exists
+                ],
+                backgroundColor: [
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(255, 99, 132, 0.6)',
+                ],
+                borderColor: [
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 99, 132, 1)',
+                ],
+                borderWidth: 1,
+            },
+        ],
+    };
 
     const stats = [
         { title: 'Total Orders', value: totalOrders, icon: <FaShoppingCart />, color: 'bg-blue-500' },
         { title: 'Pending Orders', value: pendingOrders, icon: <FaClipboardList />, color: 'bg-yellow-500' },
         { title: 'Completed Orders', value: completedOrders, icon: <FaCheckCircle />, color: 'bg-green-500' },
         { title: 'Total Revenue', value: `$${(revenue || 0).toFixed(2)}`, icon: <FaDollarSign />, color: 'bg-purple-500' },
-    ];
-
-    // Mock Reports for now unless backend provides specific report endpoints
-    // In a real app, we'd process `orders` to generate these arrays
-    const dailySales = [
-        { date: '2026-02-12', orders: 15, revenue: 450.00 },
-        { date: '2026-02-11', orders: 12, revenue: 380.50 },
-    ];
-
-    const monthlySales = [
-        { month: 'February 2026', orders: 345, revenue: 12450.00 },
     ];
 
     if (loading) return <Loader />;
@@ -61,63 +127,27 @@ const AdminDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Daily Sales Report */}
+                {/* Daily Sales Chart */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center mb-6">
                         <div className="p-2 bg-blue-100 rounded-md text-blue-600 mr-3">
-                            <FaCalendarAlt />
+                            <FaChartLine />
                         </div>
-                        <h2 className="text-xl font-bold text-gray-800">Daily Sales Report</h2>
+                        <h2 className="text-xl font-bold text-gray-800">Daily Sales Trend (Last 7 Days)</h2>
                     </div>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead>
-                                <tr>
-                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orders</th>
-                                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {dailySales.map((day, index) => (
-                                    <tr key={index} className="hover:bg-gray-50">
-                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{day.date}</td>
-                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{day.orders}</td>
-                                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-right">${day.revenue.toFixed(2)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    <Line data={lineChartData} />
                 </div>
 
-                {/* Monthly Sales Report */}
+                {/* Order Status Chart */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center mb-6">
                         <div className="p-2 bg-purple-100 rounded-md text-purple-600 mr-3">
-                            <FaChartLine />
+                            <FaClipboardList />
                         </div>
-                        <h2 className="text-xl font-bold text-gray-800">Monthly Sales Report</h2>
+                        <h2 className="text-xl font-bold text-gray-800">Order Status Distribution</h2>
                     </div>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead>
-                                <tr>
-                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
-                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Orders</th>
-                                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Revenue</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {monthlySales.map((month, index) => (
-                                    <tr key={index} className="hover:bg-gray-50">
-                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{month.month}</td>
-                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{month.orders}</td>
-                                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-right">${month.revenue.toFixed(2)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <div className="w-full max-w-xs mx-auto">
+                        <Doughnut data={doughnutChartData} />
                     </div>
                 </div>
             </div>

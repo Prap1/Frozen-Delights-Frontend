@@ -104,7 +104,9 @@ const Navbar = () => {
                                 {accountOpen && (
                                     <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                         <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setAccountOpen(false)}>Your Profile</Link>
-                                        <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setAccountOpen(false)}>Orders</Link>
+                                        {!isAdmin && (
+                                            <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setAccountOpen(false)}>Orders</Link>
+                                        )}
                                         {user?.role === 'user' && user?.vendorStatus !== 'approved' && (
                                             <Link to="/become-vendor" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setAccountOpen(false)}>Become a Vendor</Link>
                                         )}
@@ -196,7 +198,9 @@ const Navbar = () => {
                         {isAuthenticated && (
                             <div className="mt-3 space-y-1">
                                 <Link to="/profile" className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Your Profile</Link>
-                                <Link to="/orders" className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Orders</Link>
+                                {!isAdmin && (
+                                    <Link to="/orders" className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Orders</Link>
+                                )}
                                 {user?.role === 'user' && user?.vendorStatus !== 'approved' && (
                                     <Link to="/become-vendor" className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Become a Vendor</Link>
                                 )}

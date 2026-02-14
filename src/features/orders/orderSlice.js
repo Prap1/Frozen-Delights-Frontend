@@ -14,6 +14,19 @@ export const fetchAllOrders = createAsyncThunk(
     }
 );
 
+// Fetch Vendor Orders
+export const fetchVendorOrders = createAsyncThunk(
+    'orders/fetchVendorOrders',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/orders/vendor/orders');
+            return response.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data);
+        }
+    }
+);
+
 // Delete Order (Admin)
 export const deleteOrder = createAsyncThunk(
     'orders/delete',
@@ -44,6 +57,7 @@ const orderSlice = createSlice({
     name: 'orders',
     initialState: {
         orders: [],
+        vendorOrders: [], // Added for vendor dashboard
         totalAmount: 0,
         loading: false,
         updateLoading: false,
@@ -60,6 +74,7 @@ const orderSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            // Fetch All Orders
             .addCase(fetchAllOrders.pending, (state) => {
                 state.loading = true;
             })
@@ -72,10 +87,27 @@ const orderSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
+
+            // Fetch Vendor Orders
+            .addCase(fetchVendorOrders.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchVendorOrders.fulfilled, (state, action) => {
+                state.loading = false;
+                state.vendorOrders = action.payload.orders;
+            })
+            .addCase(fetchVendorOrders.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            // Delete Order
             .addCase(deleteOrder.fulfilled, (state, action) => {
                 state.loading = false;
                 state.orders = state.orders.filter((order) => order._id !== action.payload);
             })
+
+            // Update Order
             .addCase(updateOrder.pending, (state) => {
                 state.updateLoading = true;
             })

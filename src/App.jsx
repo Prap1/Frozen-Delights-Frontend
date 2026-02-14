@@ -34,6 +34,7 @@ import AdminDiscounts from './pages/admin/AdminDiscounts';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminReviews from './pages/admin/AdminReviews';
 import AdminContent from './pages/admin/AdminContent';
+import AdminContentForm from './pages/admin/AdminContentForm';
 import BecomeVendor from './pages/vendor/BecomeVendor';
 import AdminVendorRequests from './pages/admin/AdminVendorRequests';
 import VendorOrders from './pages/vendor/VendorOrders';
@@ -48,6 +49,8 @@ import Contact from './pages/static/Contact';
 import FAQ from './pages/static/FAQ';
 import ShippingInfo from './pages/static/ShippingInfo';
 import Returns from './pages/static/Returns';
+import PrivacyPolicy from './pages/static/PrivacyPolicy';
+import TermsOfService from './pages/static/TermsOfService';
 
 // Main App Component
 function App() {
@@ -97,6 +100,8 @@ function App() {
               <Route path="/helpcentre" element={<FAQ />} />
               <Route path="/shipping-policy" element={<ShippingInfo />} />
               <Route path="/return-policy" element={<Returns />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
 
 
               {/* USER PROTECTED */}
@@ -121,6 +126,8 @@ function App() {
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/reviews" element={<AdminReviews />} />
                 <Route path="/admin/content" element={<AdminContent />} />
+                <Route path="/admin/content/new" element={<AdminContentForm />} />
+                <Route path="/admin/content/edit/:id" element={<AdminContentForm />} />
                 <Route path="/admin/vendor-requests" element={<AdminVendorRequests />} />
                 <Route path="/admin/orders" element={<AdminOrders />} />
               </Route>

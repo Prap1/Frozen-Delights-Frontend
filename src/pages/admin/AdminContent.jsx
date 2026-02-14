@@ -3,63 +3,43 @@ import Swal from 'sweetalert2';
 import DataTable from 'react-data-table-component';
 import { FaTrash, FaEdit, FaPlus, FaImage, FaBullhorn } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
-import { useForm } from 'react-hook-form';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-    fetchAllBanners, createBanner, updateBanner, deleteBanner,
-    fetchAllContent, createContent, updateContent, deleteContent,
+    fetchAllBanners, deleteBanner,
+    fetchAllContent, deleteContent,
+    createContent,
     resetContentState
 } from '../../features/content/contentSlice';
 import Loader from '../../components/ui/Loader';
-import Modal from '../../components/ui/Modal';
 
 const AdminContent = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+
     const { banners, contentItems, loading, success } = useSelector((state) => state.content);
-    const [activeTab, setActiveTab] = useState('banners');
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingItem, setEditingItem] = useState(null);
-    const { register, handleSubmit, reset, setValue } = useForm();
+
+    // Get active tab from URL or default to 'banners'
+    const activeTab = searchParams.get('tab') || 'banners';
 
     useEffect(() => {
         dispatch(fetchAllBanners());
         dispatch(fetchAllContent());
     }, [dispatch]);
 
-    useEffect(() => {
-        if (success) {
-            setIsModalOpen(false);
-            setEditingItem(null);
-            reset();
-            dispatch(resetContentState());
-        }
-    }, [success, dispatch, reset]);
-
-    const openModal = (item = null) => {
-        setEditingItem(item);
-        if (item) {
-            Object.keys(item).forEach(key => setValue(key, item[key]));
-        } else {
-            reset();
-            // Default type for content tab
-            if (activeTab === 'content') setValue('type', 'announcement');
-        }
-        setIsModalOpen(true);
+    // Handle tab change by updating URL
+    const setActiveTab = (tab) => {
+        setSearchParams({ tab });
     };
 
-    const onSubmit = (data) => {
-        if (activeTab === 'banners') {
-            if (editingItem) {
-                dispatch(updateBanner({ id: editingItem._id, bannerData: data }));
-            } else {
-                dispatch(createBanner(data));
-            }
-        } else {
-            if (editingItem) {
-                dispatch(updateContent({ id: editingItem._id, contentData: data }));
-            } else {
-                dispatch(createContent(data));
-            }
-        }
+    const handleEdit = (item) => {
+        const mode = activeTab === 'banners' ? 'banner' : 'content';
+        navigate(`/admin/content/edit/${item._id}?mode=${mode}&tab=${activeTab}`);
+    };
+
+    const handleAdd = () => {
+        const mode = activeTab === 'banners' ? 'banner' : 'content';
+        navigate(`/admin/content/new?mode=${mode}&tab=${activeTab}`);
     };
 
     const handleDelete = (id) => {
@@ -112,7 +92,7 @@ const AdminContent = () => {
             name: 'Actions',
             cell: row => (
                 <div className="flex space-x-2">
-                    <button onClick={() => openModal(row)} className="text-blue-600 hover:text-blue-800"><FaEdit /></button>
+                    <button onClick={() => handleEdit(row)} className="text-blue-600 hover:text-blue-800"><FaEdit /></button>
                     <button onClick={() => handleDelete(row._id)} className="text-red-600 hover:text-red-800"><FaTrash /></button>
                 </div>
             )
@@ -139,7 +119,7 @@ const AdminContent = () => {
             name: 'Actions',
             cell: row => (
                 <div className="flex space-x-2">
-                    <button onClick={() => openModal(row)} className="text-blue-600 hover:text-blue-800"><FaEdit /></button>
+                    <button onClick={() => handleEdit(row)} className="text-blue-600 hover:text-blue-800"><FaEdit /></button>
                     <button onClick={() => handleDelete(row._id)} className="text-red-600 hover:text-red-800"><FaTrash /></button>
                 </div>
             )
@@ -179,10 +159,41 @@ const AdminContent = () => {
                         Seed Default FAQs
                     </button>
                     <button
-                        onClick={() => openModal()}
+                        onClick={async () => {
+                            if (!window.confirm("This will add default Privacy Policy and Terms to your database. Continue?")) return;
+
+                            const defaultPolicies = [
+                                {
+                                    type: 'privacy',
+                                    title: 'Privacy Policy',
+                                    content: `We value the trust you place in us... (Please edit this with full content)`,
+                                    isActive: true
+                                },
+                                {
+                                    type: 'terms',
+                                    title: 'Terms of Service',
+                                    content: `TERMS OF SERVICE\nFrozen Delight\n... (Please edit this with full content)`,
+                                    isActive: true
+                                },
+                            ];
+
+                            // Sequential creation to avoid overwhelming the server
+                            for (const policy of defaultPolicies) {
+                                await dispatch(createContent(policy));
+                            }
+                            // Refresh list
+                            dispatch(fetchAllContent());
+                            Swal.fire('Success', 'Default Policies added!', 'success');
+                        }}
+                        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                    >
+                        Seed Policies
+                    </button>
+                    <button
+                        onClick={handleAdd}
                         className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                        <FaPlus /> Add New {activeTab === 'banners' ? 'Banner' : 'Content'}
+                        <FaPlus /> Add New {activeTab === 'banners' ? 'Banner' : activeTab === 'policies' ? 'Policy' : 'Content'}
                     </button>
                 </div>
             </div>
@@ -201,129 +212,29 @@ const AdminContent = () => {
                 >
                     <FaBullhorn className="inline mr-2" /> Announcements & Content
                 </button>
+                <button
+                    onClick={() => setActiveTab('policies')}
+                    className={`pb-2 px-4 font-medium transition-colors ${activeTab === 'policies' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    <FaBullhorn className="inline mr-2" /> ID Policies
+                </button>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <DataTable
                     columns={activeTab === 'banners' ? bannerColumns : contentColumns}
-                    data={activeTab === 'banners' ? banners : contentItems}
+                    data={
+                        activeTab === 'banners'
+                            ? banners
+                            : activeTab === 'policies'
+                                ? contentItems.filter(item => ['privacy', 'terms'].includes(item.type))
+                                : contentItems.filter(item => !['privacy', 'terms'].includes(item.type))
+                    }
                     pagination
                     progressPending={loading}
                     progressComponent={<Loader />}
                 />
             </div>
-
-            {/* Modal */}
-            <Modal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                title={`${editingItem ? 'Edit' : 'Add'} ${activeTab === 'banners' ? 'Banner' : 'Content'}`}
-            >
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    {activeTab === 'banners' ? (
-                        <>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Title</label>
-                                    <input {...register('title', { required: true })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Order</label>
-                                    <input type="number" {...register('order')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" defaultValue={0} />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Subtitle</label>
-                                <textarea {...register('subtitle', { required: true })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Image URL</label>
-                                <input {...register('image', { required: true })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="https://..." />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">CTA Text</label>
-                                    <input {...register('cta', { required: true })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Link</label>
-                                    <input {...register('link', { required: true })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
-                                </div>
-                            </div>
-                            <div className="flex items-center">
-                                <input type="checkbox" {...register('isActive')} className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" defaultChecked />
-                                <label className="ml-2 block text-sm text-gray-900">Active</label>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Type</label>
-                                    <select {...register('type', { required: true })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
-                                        <option value="announcement">Announcement</option>
-                                        <option value="feature">Feature</option>
-                                        <option value="about">About Section</option>
-                                        <option value="faq">FAQ</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Order</label>
-                                    <input type="number" {...register('order')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" defaultValue={0} />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">
-                                    {activeTab === 'content' && 'Title (Question for FAQ)'}
-                                </label>
-                                <input {...register('title', { required: true })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. How do I return an item?" />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">
-                                    {activeTab === 'content' && 'Content (Answer for FAQ)'}
-                                </label>
-                                <textarea {...register('content', { required: true })} rows={4} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. You can return items within 7 days..." />
-                            </div>
-
-                            {/* Subtitle field abused as Category for FAQs */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Category (for FAQs) / Subtitle</label>
-                                <input {...register('subtitle')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. Returns & Pickup" />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Image URL (Optional)</label>
-                                <input {...register('image')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="https://..." />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Icon (Optional, visual only)</label>
-                                <input {...register('icon')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. 🍦" />
-                            </div>
-                            <div className="flex items-center">
-                                <input type="checkbox" {...register('isActive')} className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" defaultChecked />
-                                <label className="ml-2 block text-sm text-gray-900">Active</label>
-                            </div>
-                        </>
-                    )}
-                    <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-                        <button
-                            type="submit"
-                            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm"
-                        >
-                            {editingItem ? 'Update' : 'Create'}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setIsModalOpen(false)}
-                            className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:col-start-1 sm:text-sm"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            </Modal>
         </div>
     );
 };
