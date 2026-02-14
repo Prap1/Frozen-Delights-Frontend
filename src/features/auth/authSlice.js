@@ -109,6 +109,19 @@ export const resetPassword = createAsyncThunk(
     }
 );
 
+/* ===================== UPDATE PROFILE ===================== */
+export const updateProfile = createAsyncThunk(
+    'auth/updateProfile',
+    async (userData, { rejectWithValue }) => {
+        try {
+            const response = await api.put('/users/profile/update', userData);
+            return response.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data);
+        }
+    }
+);
+
 /* ===================== INITIAL STATE ===================== */
 const initialState = {
     user: null,
@@ -147,6 +160,19 @@ const authSlice = createSlice({
                 state.error = action.payload?.message || 'Login failed';
             })
 
+            /* ---------- REGISTER INITIATE ---------- */
+            .addCase(registerInitiate.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(registerInitiate.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(registerInitiate.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || 'Registration initiation failed';
+            })
+
             /* ---------- REGISTER VERIFY (AUTO LOGIN) ---------- */
             .addCase(registerVerify.pending, (state) => {
                 state.loading = true;
@@ -182,6 +208,47 @@ const authSlice = createSlice({
             .addCase(logout.fulfilled, (state) => {
                 state.user = null;
                 state.isAuthenticated = false;
+            })
+
+            /* ---------- FORGOT PASSWORD ---------- */
+            .addCase(forgotPassword.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(forgotPassword.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(forgotPassword.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || 'Forgot password failed';
+            })
+
+            /* ---------- RESET PASSWORD ---------- */
+            .addCase(resetPassword.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(resetPassword.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(resetPassword.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || 'Reset password failed';
+            })
+
+            /* ---------- UPDATE PROFILE ---------- */
+            .addCase(updateProfile.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                state.user = { ...state.user, ...action.payload.user };
+                state.isAuthenticated = true;
+            })
+            .addCase(updateProfile.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || 'Profile update failed';
             });
     },
 });

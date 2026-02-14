@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { addToCart, removeFromCart } from '../../features/cart/cartSlice';
+import { addToCart, removeFromCart, applyDiscount } from '../../features/cart/cartSlice';
+import api from '../../services/api';
+import { toast } from 'react-toastify';
 
 const Cart = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { cartItems } = useSelector((state) => state.cart);
+    const [couponCode, setCouponCode] = useState('');
 
     const increaseQuantity = (item) => {
         if (item.Stock <= item.quantity) return;
@@ -28,6 +32,23 @@ const Cart = () => {
     };
 
     const total = cartItems.reduce((acc, item) => acc + item.quantity * item.price, 0);
+
+    const applyCoupon = async () => {
+        try {
+            const { data } = await api.post('/discounts/validate', {
+                code: couponCode,
+                cartTotal: total
+            });
+
+            if (data.success) {
+                dispatch(applyDiscount(data.discount));
+                toast.success(`Coupon ${data.discount.code} applied! Saved ₹${data.discount.amount}`);
+            }
+        } catch (error) {
+            dispatch(applyDiscount(null));
+            toast.error(error.response?.data?.message || 'Invalid Coupon Code');
+        }
+    };
 
     if (cartItems.length === 0) {
         return (
@@ -53,6 +74,7 @@ const Cart = () => {
                                     <div>
                                         <Link to={`/product/${item.product}`} className="text-lg font-medium text-blue-600 hover:text-blue-500">{item.name}</Link>
                                         <p className="text-sm text-gray-500">Price: ₹{item.price}</p>
+                                        {item.Stock < 1 && <p className="text-red-500 font-bold text-sm mt-1">Out of Stock</p>}
                                     </div>
                                     <div className="mt-4 sm:mt-0 flex items-center">
                                         <button onClick={() => decreaseQuantity(item)} className="px-2 py-1 bg-gray-200 rounded-md">-</button>
@@ -64,13 +86,34 @@ const Cart = () => {
                             </li>
                         ))}
                     </ul>
-                    <div className="px-4 py-4 sm:px-6 bg-gray-50 flex flex-col sm:flex-row justify-between items-center">
-                        <div className="text-lg font-medium text-gray-900">
-                            Total: <span className="text-blue-600">₹{total}</span>
+
+                    <div className="px-4 py-4 sm:px-6 bg-gray-50 border-t border-gray-200">
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <div className="flex w-full sm:w-auto gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Enter Coupon Code"
+                                    value={couponCode}
+                                    onChange={(e) => setCouponCode(e.target.value)}
+                                    className="border border-gray-300 rounded px-3 py-2 w-full sm:w-64"
+                                />
+                                <button
+                                    onClick={applyCoupon}
+                                    className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
+                                >
+                                    Apply
+                                </button>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                                <div className="text-lg font-medium text-gray-900">
+                                    Total: <span className="text-blue-600">₹{total}</span>
+                                </div>
+                                <button onClick={checkoutHandler} className="w-full sm:w-auto bg-blue-600 border border-transparent rounded-md py-2 px-4 flex items-center justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none">
+                                    Check Out
+                                </button>
+                            </div>
                         </div>
-                        <button onClick={checkoutHandler} className="mt-4 sm:mt-0 w-full sm:w-auto bg-blue-600 border border-transparent rounded-md py-2 px-4 flex items-center justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none">
-                            Check Out
-                        </button>
                     </div>
                 </div>
             </div>

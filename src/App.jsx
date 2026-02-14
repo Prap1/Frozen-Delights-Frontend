@@ -37,6 +37,17 @@ import AdminContent from './pages/admin/AdminContent';
 import BecomeVendor from './pages/vendor/BecomeVendor';
 import AdminVendorRequests from './pages/admin/AdminVendorRequests';
 import VendorOrders from './pages/vendor/VendorOrders';
+import AdminOrders from './pages/admin/AdminOrders';
+
+import Bestsellers from './pages/promotional/Bestsellers';
+import NewArrivals from './pages/promotional/NewArrivals';
+// import GiftCards from './pages/promotional/GiftCards';
+import Support from './pages/static/Support';
+import About from './pages/static/About';
+import Contact from './pages/static/Contact';
+import FAQ from './pages/static/FAQ';
+import ShippingInfo from './pages/static/ShippingInfo';
+import Returns from './pages/static/Returns';
 
 // Main App Component
 function App() {
@@ -51,9 +62,9 @@ function App() {
   }, [dispatch]);
 
   // Optional loader while checking auth
-  if (loading) {
-    return <div className="text-center mt-20">Loading...</div>;
-  }
+  // if (loading) {
+  //   return <div className="text-center mt-20">Loading...</div>;
+  // }
 
   return (
     <>
@@ -75,6 +86,18 @@ function App() {
               <Route path="/product/:id" element={<ProductDetails />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/compare" element={<CompareProducts />} />
+
+
+              {/* STATICS & PROMOTIONAL */}
+              <Route path="/bestsellers" element={<Bestsellers />} />
+              <Route path="/new-arrivals" element={<NewArrivals />} />
+              <Route path="/support" element={<Support />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/helpcentre" element={<FAQ />} />
+              <Route path="/shipping-policy" element={<ShippingInfo />} />
+              <Route path="/return-policy" element={<Returns />} />
+
 
               {/* USER PROTECTED */}
               <Route element={<ProtectedRoute />}>
@@ -99,6 +122,7 @@ function App() {
                 <Route path="/admin/reviews" element={<AdminReviews />} />
                 <Route path="/admin/content" element={<AdminContent />} />
                 <Route path="/admin/vendor-requests" element={<AdminVendorRequests />} />
+                <Route path="/admin/orders" element={<AdminOrders />} />
               </Route>
 
               {/* VENDOR */}

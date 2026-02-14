@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import api from '../../services/api';
+import { useSelector, useDispatch } from 'react-redux';
+import { createProduct, resetProductState } from '../../features/products/productSlice';
+import { toast } from 'react-toastify';
 
 const ProductForm = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
+    const { loading, error: productError, success } = useSelector((state) => state.products);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -15,41 +18,42 @@ const ProductForm = () => {
         Stock: '',
         image: '' // URL for simplicity
     });
-    const [error, setError] = useState('');
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-
-        try {
-            const productData = {
-                ...formData,
-                images: [{ public_id: 'sample_id', url: formData.image }]
-            };
-
-            await api.post('/products/new', productData);
-            alert('Product Created Successfully');
-
+    useEffect(() => {
+        if (success) {
+            toast.success('Product Created Successfully');
+            dispatch(resetProductState());
             if (user?.role === 'vendor') {
                 navigate('/vendor/dashboard');
             } else {
                 navigate('/admin/products');
             }
-
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to create product');
         }
+        if (productError) {
+            toast.error(productError);
+            dispatch(resetProductState());
+        }
+    }, [success, productError, dispatch, navigate, user]);
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        const productData = {
+            ...formData,
+            images: [{ public_id: 'sample_id', url: formData.image }]
+        };
+
+        dispatch(createProduct(productData));
     };
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow">
                 <h2 className="text-2xl font-bold mb-6">Create New Product</h2>
-                {error && <div className="text-red-500 mb-4">{error}</div>}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Name</label>
@@ -75,7 +79,9 @@ const ProductForm = () => {
                         <label className="block text-sm font-medium text-gray-700">Image URL</label>
                         <input type="text" name="image" required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" onChange={handleChange} placeholder="https://example.com/image.jpg" />
                     </div>
-                    <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Create Product</button>
+                    <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:bg-blue-300">
+                        {loading ? 'Creating...' : 'Create Product'}
+                    </button>
                 </form>
             </div>
         </div>

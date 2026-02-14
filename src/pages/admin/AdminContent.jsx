@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Swal from 'sweetalert2';
 import DataTable from 'react-data-table-component';
 import { FaTrash, FaEdit, FaPlus, FaImage, FaBullhorn } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
@@ -62,13 +63,28 @@ const AdminContent = () => {
     };
 
     const handleDelete = (id) => {
-        if (window.confirm('Are you sure you want to delete this item?')) {
-            if (activeTab === 'banners') {
-                dispatch(deleteBanner(id));
-            } else {
-                dispatch(deleteContent(id));
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (activeTab === 'banners') {
+                    dispatch(deleteBanner(id));
+                } else {
+                    dispatch(deleteContent(id));
+                }
+                Swal.fire(
+                    'Deleted!',
+                    'Item has been deleted.',
+                    'success'
+                )
             }
-        }
+        })
     };
 
     // Columns for Banners
@@ -106,8 +122,9 @@ const AdminContent = () => {
     // Columns for Content
     const contentColumns = [
         { name: 'Type', selector: row => row.type, sortable: true, width: '120px' },
-        { name: 'Title', selector: row => row.title, sortable: true },
-        { name: 'Content', selector: row => row.content, wrap: true },
+        { name: 'Title/Question', selector: row => row.title, sortable: true },
+        { name: 'Category', selector: row => row.subtitle || '-', sortable: true, width: '150px' },
+        { name: 'Content/Answer', selector: row => row.content, wrap: true },
         {
             name: 'Status',
             selector: row => row.isActive ? 'Active' : 'Inactive',
@@ -136,12 +153,38 @@ const AdminContent = () => {
                     <h1 className="text-2xl font-bold text-gray-800">Content Management</h1>
                     <p className="text-gray-600 mt-2">Manage homepage banners, announcements, and site content.</p>
                 </div>
-                <button
-                    onClick={() => openModal()}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                    <FaPlus /> Add New {activeTab === 'banners' ? 'Banner' : 'Content'}
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={async () => {
+                            if (!window.confirm("This will add default FAQs to your database. Continue?")) return;
+
+                            const defaultFAQs = [
+                                { type: 'faq', title: 'How can I track my order?', content: 'You can track your order status in the "My Orders" section. Once shipped, you will receive an SMS and email with tracking details.', subtitle: 'Delivery related', isActive: true },
+                                { type: 'faq', title: 'What is the return policy?', content: 'Most items can be returned within 7 days of delivery if they are unused and in original packaging.', subtitle: 'Returns & Pickup', isActive: true },
+                                { type: 'faq', title: 'How can I pay for my order?', content: 'We accept Credit/Debit cards, Net Banking, UPI, and Cash on Delivery (COD).', subtitle: 'Payment', isActive: true },
+                                { type: 'faq', title: 'I forgot my password, how do I reset it?', content: 'Click on "Forgot Password" on the login page and follow the instructions sent to your email.', subtitle: 'Login and my account', isActive: true },
+                                { type: 'faq', title: 'Can I cancel my order?', content: 'You can cancel your order before it has been shipped from the "My Orders" section.', subtitle: 'Cancellations', isActive: true },
+                            ];
+
+                            // Sequential creation to avoid overwhelming the server
+                            for (const faq of defaultFAQs) {
+                                await dispatch(createContent(faq));
+                            }
+                            // Refresh list
+                            dispatch(fetchAllContent());
+                            Swal.fire('Success', 'Default FAQs added!', 'success');
+                        }}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                    >
+                        Seed Default FAQs
+                    </button>
+                    <button
+                        onClick={() => openModal()}
+                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        <FaPlus /> Add New {activeTab === 'banners' ? 'Banner' : 'Content'}
+                    </button>
+                </div>
             </div>
 
             {/* Tabs */}
@@ -221,6 +264,7 @@ const AdminContent = () => {
                                         <option value="announcement">Announcement</option>
                                         <option value="feature">Feature</option>
                                         <option value="about">About Section</option>
+                                        <option value="faq">FAQ</option>
                                     </select>
                                 </div>
                                 <div>
@@ -229,13 +273,30 @@ const AdminContent = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Title</label>
-                                <input {...register('title', { required: true })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
+                                <label className="block text-sm font-medium text-gray-700">
+                                    {activeTab === 'content' && 'Title (Question for FAQ)'}
+                                </label>
+                                <input {...register('title', { required: true })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. How do I return an item?" />
                             </div>
+
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Content</label>
-                                <textarea {...register('content', { required: true })} rows={4} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
+                                <label className="block text-sm font-medium text-gray-700">
+                                    {activeTab === 'content' && 'Content (Answer for FAQ)'}
+                                </label>
+                                <textarea {...register('content', { required: true })} rows={4} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. You can return items within 7 days..." />
                             </div>
+
+                            {/* Subtitle field abused as Category for FAQs */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Category (for FAQs) / Subtitle</label>
+                                <input {...register('subtitle')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. Returns & Pickup" />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Image URL (Optional)</label>
+                                <input {...register('image')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="https://..." />
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Icon (Optional, visual only)</label>
                                 <input {...register('icon')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. 🍦" />

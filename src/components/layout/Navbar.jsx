@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../features/auth/authSlice";
+import api from "../../services/api";
 // import CartContext from "../../context/CartContext";
 
 const Navbar = () => {
@@ -86,10 +87,18 @@ const Navbar = () => {
                                         className="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 items-center gap-2 px-3 py-1 border border-gray-200 hover:bg-gray-50 transition-colors"
                                     >
                                         <span className="sr-only">Open user menu</span>
-                                        <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                                            {user?.name?.charAt(0).toUpperCase() || 'U'}
-                                        </div>
-                                        <span className="hidden xl:block text-gray-700 font-medium">{user?.name}</span>
+                                        {user?.profileImage ? (
+                                            <img
+                                                src={user.profileImage.startsWith('http') ? user.profileImage : `${api.defaults.baseURL.replace('/api', '')}/${user.profileImage}`}
+                                                alt="Profile"
+                                                className="h-8 w-8 rounded-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                                                {user?.username?.charAt(0).toUpperCase() || 'U'}
+                                            </div>
+                                        )}
+                                        <span className="hidden xl:block text-gray-700 font-medium">{user?.username}</span>
                                     </button>
                                 </div>
                                 {accountOpen && (
@@ -161,12 +170,20 @@ const Navbar = () => {
                         {isAuthenticated ? (
                             <div className="flex items-center px-4">
                                 <div className="flex-shrink-0">
-                                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                                        {user?.name?.charAt(0).toUpperCase() || 'U'}
-                                    </div>
+                                    {user?.profileImage ? (
+                                        <img
+                                            src={user.profileImage.startsWith('http') ? user.profileImage : `${api.defaults.baseURL.replace('/api', '')}/${user.profileImage}`}
+                                            alt="Profile"
+                                            className="h-10 w-10 rounded-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                                            {user?.username?.charAt(0).toUpperCase() || 'U'}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="ml-3">
-                                    <div className="text-base font-medium text-gray-800">{user?.name}</div>
+                                    <div className="text-base font-medium text-gray-800">{user?.username}</div>
                                     <div className="text-sm font-medium text-gray-500">{user?.email}</div>
                                 </div>
                             </div>

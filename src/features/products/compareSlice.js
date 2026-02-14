@@ -19,7 +19,6 @@ const compareSlice = createSlice({
             }
 
             if (state.compareItems.length >= 4) {
-                alert("You can compare up to 4 products only!");
                 return;
             }
 

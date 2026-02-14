@@ -3,7 +3,7 @@ import CheckoutSteps from './CheckoutSteps';
 import { Link, useNavigate } from 'react-router-dom';
 
 const ConfirmOrder = () => {
-    const { shippingInfo, cartItems } = useSelector((state) => state.cart);
+    const { shippingInfo, cartItems, discount } = useSelector((state) => state.cart);
     const { user } = useSelector((state) => state.auth);
     const navigate = useNavigate();
 
@@ -14,7 +14,8 @@ const ConfirmOrder = () => {
 
     const shippingCharges = subtotal > 1000 ? 0 : 200; // Free shipping > 1000
     const tax = subtotal * 0.18; // 18% GST
-    const totalPrice = subtotal + shippingCharges + tax;
+    const discountAmount = discount ? discount.amount : 0;
+    const totalPrice = subtotal + shippingCharges + tax - discountAmount;
 
     const address = `${shippingInfo.address}, ${shippingInfo.city}, ${shippingInfo.state}, ${shippingInfo.pinCode}, ${shippingInfo.country}`;
 
@@ -23,6 +24,7 @@ const ConfirmOrder = () => {
             subtotal,
             shippingCharges,
             tax,
+            discount,
             totalPrice,
         };
 
@@ -71,7 +73,10 @@ const ConfirmOrder = () => {
                                         </div>
                                         <div className="ml-4 flex-1">
                                             <div className="flex justify-between text-base font-medium text-gray-900">
-                                                <h3><Link to={`/product/${item.product}`}>{item.name}</Link></h3>
+                                                <h3>
+                                                    <Link to={`/product/${item.product}`}>{item.name}</Link>
+                                                    {item.Stock < 1 && <span className="text-red-500 text-sm ml-2">(Out of Stock)</span>}
+                                                </h3>
                                                 <p>{item.quantity} x ₹{item.price} = <b>₹{item.quantity * item.price}</b></p>
                                             </div>
                                         </div>
@@ -101,6 +106,14 @@ const ConfirmOrder = () => {
                                         <dt className="text-sm font-medium text-gray-500">GST (18%)</dt>
                                         <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">₹{tax.toFixed(2)}</dd>
                                     </div>
+
+                                    {discount && (
+                                        <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 text-green-600">
+                                            <dt className="text-sm font-medium">Discount ({discount.code})</dt>
+                                            <dd className="mt-1 text-sm font-medium sm:mt-0 sm:col-span-2">- ₹{discount.amount}</dd>
+                                        </div>
+                                    )}
+
                                     <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 bg-gray-50">
                                         <dt className="text-base font-bold text-gray-900">Total</dt>
                                         <dd className="mt-1 text-base font-bold text-gray-900 sm:mt-0 sm:col-span-2">₹{totalPrice.toFixed(2)}</dd>

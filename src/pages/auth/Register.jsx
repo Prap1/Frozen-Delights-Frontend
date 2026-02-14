@@ -6,10 +6,12 @@ import {
     registerVerify,
     clearError
 } from '../../features/auth/authSlice';
+import Spinner from '../../components/ui/Spinner';
+import Loader from '../../components/ui/Loader';
+import { toast } from 'react-toastify';
 
 const Register = () => {
     const [step, setStep] = useState(1); // 1 = form, 2 = OTP
-    const [message, setMessage] = useState('');
 
     const [formData, setFormData] = useState({
         username: '',
@@ -28,6 +30,7 @@ const Register = () => {
     /* ===================== AUTO REDIRECT AFTER LOGIN ===================== */
     useEffect(() => {
         if (isAuthenticated) {
+            toast.success('Login Successful');
             navigate('/'); // dashboard or home
         }
     }, [isAuthenticated, navigate]);
@@ -35,6 +38,7 @@ const Register = () => {
     /* ===================== AUTO CLEAR ERROR ===================== */
     useEffect(() => {
         if (error) {
+            toast.error(error);
             const timer = setTimeout(() => {
                 dispatch(clearError());
             }, 3000);
@@ -52,7 +56,6 @@ const Register = () => {
     const handleInitiate = async (e) => {
         e.preventDefault();
         dispatch(clearError());
-        setMessage('');
 
         const result = await dispatch(
             registerInitiate({
@@ -63,8 +66,11 @@ const Register = () => {
         );
 
         if (registerInitiate.fulfilled.match(result)) {
+            console.log("Dispatch success:", result);
             setStep(2);
-            setMessage('OTP sent to your email');
+            toast.success('OTP sent to your email');
+        } else {
+            console.error("Dispatch failed:", result);
         }
     };
 
@@ -81,12 +87,18 @@ const Register = () => {
             })
         );
 
-        // redirect handled by useEffect
+        if (registerVerify.fulfilled.match(result)) {
+            // redirect handled by useEffect when isAuthenticated becomes true
+            // toast.success('Registration and Login Successful'); // handled in useEffect
+        } else {
+            // toast.error(...) handled by useEffect
+        }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
             <div className="max-w-md w-full space-y-8">
+                {loading && <div className="flex justify-center"><Loader /></div>}
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
                         {step === 1 ? 'Create your account' : 'Verify Email'}
@@ -101,18 +113,6 @@ const Register = () => {
                         </Link>
                     </p>
                 </div>
-
-                {error && (
-                    <div className="text-red-500 text-sm text-center">
-                        {error}
-                    </div>
-                )}
-
-                {message && (
-                    <div className="text-green-500 text-sm text-center">
-                        {message}
-                    </div>
-                )}
 
                 {/* ===================== STEP 1 ===================== */}
                 {step === 1 && (
@@ -149,9 +149,9 @@ const Register = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                            className="w-full flex justify-center items-center bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
                         >
-                            {loading ? 'Sending OTP...' : 'Send OTP'}
+                            {loading ? <Spinner /> : 'Send OTP'}
                         </button>
                     </form>
                 )}
@@ -171,9 +171,9 @@ const Register = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                            className="w-full flex justify-center items-center bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
                         >
-                            {loading ? 'Verifying...' : 'Verify & Register'}
+                            {loading ? <Spinner /> : 'Verify & Register'}
                         </button>
                     </form>
                 )}
@@ -183,3 +183,4 @@ const Register = () => {
 };
 
 export default Register;
+

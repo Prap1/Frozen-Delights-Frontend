@@ -7,6 +7,9 @@ const initialState = {
     shippingInfo: localStorage.getItem('shippingInfo')
         ? JSON.parse(localStorage.getItem('shippingInfo'))
         : {},
+    discount: sessionStorage.getItem('discount')
+        ? JSON.parse(sessionStorage.getItem('discount'))
+        : null,
     paymentMethod: 'Card', // Default to Card
 };
 
@@ -47,6 +50,14 @@ const cartSlice = createSlice({
         clearCart: (state) => {
             state.cartItems = [];
             localStorage.removeItem('cartItems');
+        },
+        applyDiscount: (state, action) => {
+            state.discount = action.payload;
+            sessionStorage.setItem('discount', JSON.stringify(state.discount));
+        },
+        removeDiscount: (state) => {
+            state.discount = null;
+            sessionStorage.removeItem('discount');
         }
     },
 });
@@ -56,7 +67,9 @@ export const {
     removeFromCart,
     saveShippingInfo,
     savePaymentMethod,
-    clearCart
+    clearCart,
+    applyDiscount,
+    removeDiscount
 } = cartSlice.actions;
 
 export default cartSlice.reducer;

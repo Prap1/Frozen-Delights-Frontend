@@ -4,7 +4,7 @@ import api from '../../services/api';
 // Fetch All Products
 export const fetchProducts = createAsyncThunk(
     'products/fetchAll',
-    async ({ keyword = '', currentPage = 1, price = [0, 25000], category, ratings = 0 } = {}, { rejectWithValue }) => {
+    async ({ keyword = '', currentPage = 1, price = [0, 100000], category, ratings = 0 } = {}, { rejectWithValue }) => {
         try {
             let link = `/products?keyword=${keyword}&page=${currentPage}&price[gte]=${price[0]}&price[lte]=${price[1]}`;
 
@@ -25,17 +25,39 @@ export const fetchProducts = createAsyncThunk(
     }
 );
 
+// Fetch All Products (Admin)
+export const fetchAdminProducts = createAsyncThunk(
+    'products/fetchAdminProducts',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/products/admin');
+            return response.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data);
+        }
+    }
+);
+
+// Fetch Product Details
+export const fetchProductDetails = createAsyncThunk(
+    'products/fetchDetails',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`/products/${id}`);
+            return response.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data);
+        }
+    }
+);
+
 // Create Product (Admin)
 export const createProduct = createAsyncThunk(
     'products/create',
     async (productData, { rejectWithValue }) => {
         try {
-            const config = {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            };
-            const response = await api.post('/products/new', productData, config);
+            // let axios/api instance handle the content-type (multipart if FormData, json otherwise)
+            const response = await api.post('/products/new', productData);
             return response.data;
         } catch (err) {
             return rejectWithValue(err.response?.data);
@@ -92,6 +114,18 @@ const productSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
+            .addCase(fetchProductDetails.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchProductDetails.fulfilled, (state, action) => {
+                state.loading = false;
+                state.product = action.payload.product;
+            })
+            .addCase(fetchProductDetails.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
             .addCase(createProduct.pending, (state) => {
                 state.loading = true;
             })
@@ -107,6 +141,18 @@ const productSlice = createSlice({
             .addCase(deleteProduct.fulfilled, (state, action) => {
                 state.loading = false;
                 state.items = state.items.filter((item) => item._id !== action.payload);
+            })
+            .addCase(fetchAdminProducts.pending, (state) => {
+                state.loading = true;
+                state.items = [];
+            })
+            .addCase(fetchAdminProducts.fulfilled, (state, action) => {
+                state.loading = false;
+                state.items = action.payload.products;
+            })
+            .addCase(fetchAdminProducts.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
             });
     },
 });

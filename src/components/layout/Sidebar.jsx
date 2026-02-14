@@ -20,6 +20,7 @@ const Sidebar = () => {
     const adminMenuItems = [
         { path: '/admin/dashboard', name: 'Dashboard', icon: <FaTachometerAlt /> },
         { path: '/admin/products', name: 'Products', icon: <FaBoxOpen /> },
+        { path: '/admin/orders', name: 'Orders', icon: <FaClipboardList /> },
         { path: '/admin/categories', name: 'Categories', icon: <FaTags /> },
         { path: '/admin/discounts', name: 'Discounts', icon: <FaPercent /> },
         { path: '/admin/users', name: 'Users', icon: <FaUsers /> },

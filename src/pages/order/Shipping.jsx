@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveShippingInfo } from '../../features/cart/cartSlice';
 import { useNavigate } from 'react-router-dom';
-import CheckoutSteps from './CheckoutSteps'; // We'll create this too
+import CheckoutSteps from './CheckoutSteps';
+import Swal from 'sweetalert2';
 
 const Shipping = () => {
     const dispatch = useDispatch();
@@ -21,7 +22,11 @@ const Shipping = () => {
         e.preventDefault();
 
         if (phoneNo.length < 10 || phoneNo.length > 10) {
-            alert('Phone Number should be 10 digits Long');
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Input',
+                text: 'Phone Number should be 10 digits Long'
+            });
             return;
         }
 

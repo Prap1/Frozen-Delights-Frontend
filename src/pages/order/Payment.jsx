@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import api from '../../services/api';
 import CheckoutSteps from './CheckoutSteps';
 import { clearCart } from '../../features/cart/cartSlice';
+import Swal from 'sweetalert2';
 
 const Payment = () => {
     const orderInfo = JSON.parse(sessionStorage.getItem('orderInfo'));
@@ -49,6 +50,7 @@ const Payment = () => {
         itemsPrice: orderInfo.subtotal,
         taxPrice: orderInfo.tax,
         shippingPrice: orderInfo.shippingCharges,
+        discount: orderInfo.discount,
         totalPrice: orderInfo.totalPrice,
     };
 
@@ -102,7 +104,7 @@ const Payment = () => {
             if (result.error) {
                 payBtn.current.disabled = false;
                 console.error("Payment Error:", result.error);
-                alert(`Payment Error: ${result.error.message}`); // Fallback
+                Swal.fire('Payment Error', result.error.message, 'error');
                 toast.error(result.error.message);
             } else {
                 console.log("Payment Result:", result);
@@ -118,14 +120,14 @@ const Payment = () => {
                     }
                 } else {
                     console.warn("Payment Status not succeeded:", result.paymentIntent.status);
-                    alert(`Payment Status: ${result.paymentIntent.status}`); // Fallback
+                    Swal.fire('Payment Failed', `Status: ${result.paymentIntent.status}`, 'error');
                     toast.error(`Payment not completed. Status: ${result.paymentIntent.status}`);
                 }
             }
         } catch (error) {
             payBtn.current.disabled = false;
-            payBtn.current.disabled = false;
-            toast.error(error.response.data.message);
+            console.error("Payment Process Error:", error);
+            toast.error(error.response?.data?.message || "Payment processing failed");
         }
     };
 

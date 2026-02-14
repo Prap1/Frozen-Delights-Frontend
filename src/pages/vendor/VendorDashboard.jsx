@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../services/api';
 import { toast } from 'react-toastify';
 import useAuth from '../../hooks/useAuth';
 
@@ -12,16 +12,12 @@ const VendorDashboard = () => {
     useEffect(() => {
         const fetchVendorProducts = async () => {
             try {
-                const config = {
-                    headers: {
-                        // Authorization header removed
-                    },
-                    withCredentials: true
-                };
-                const { data } = await axios.get('http://localhost:5000/api/products/vendor', config);
+                const { data } = await api.get('/products/vendor');
+                console.log("Vendor Products Fetched:", data);
                 setProducts(data.products);
                 setLoading(false);
             } catch (error) {
+                console.error("Error fetching vendor products:", error);
                 toast.error(error.response?.data?.message || 'Error fetching products');
                 setLoading(false);
             }

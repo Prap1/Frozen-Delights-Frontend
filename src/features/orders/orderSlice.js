@@ -46,12 +46,17 @@ const orderSlice = createSlice({
         orders: [],
         totalAmount: 0,
         loading: false,
+        updateLoading: false,
+        isUpdated: false,
         error: null,
     },
     reducers: {
         clearErrors: (state) => {
             state.error = null;
         },
+        resetUpdateStatus: (state) => {
+            state.isUpdated = false;
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -71,15 +76,23 @@ const orderSlice = createSlice({
                 state.loading = false;
                 state.orders = state.orders.filter((order) => order._id !== action.payload);
             })
+            .addCase(updateOrder.pending, (state) => {
+                state.updateLoading = true;
+            })
             .addCase(updateOrder.fulfilled, (state, action) => {
-                state.loading = false;
+                state.updateLoading = false;
+                state.isUpdated = true;
                 const index = state.orders.findIndex(order => order._id === action.payload.order._id);
                 if (index !== -1) {
                     state.orders[index] = action.payload.order;
                 }
+            })
+            .addCase(updateOrder.rejected, (state, action) => {
+                state.updateLoading = false;
+                state.error = action.payload;
             });
     },
 });
 
-export const { clearErrors } = orderSlice.actions;
+export const { clearErrors, resetUpdateStatus } = orderSlice.actions;
 export default orderSlice.reducer;

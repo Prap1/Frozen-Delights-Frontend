@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import DataTable from 'react-data-table-component';
 import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 import { useForm } from 'react-hook-form';
@@ -31,9 +32,24 @@ const AdminCategories = () => {
     };
 
     const handleDelete = (id) => {
-        if (window.confirm('Are you sure you want to delete this category?')) {
-            dispatch(deleteCategory(id));
-        }
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                dispatch(deleteCategory(id));
+                Swal.fire(
+                    'Deleted!',
+                    'Category has been deleted.',
+                    'success'
+                )
+            }
+        })
     };
 
     const columns = [

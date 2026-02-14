@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
+import Loader from '../../components/ui/Loader';
+import Swal from 'sweetalert2';
 
 const OrderDetails = () => {
     const { id } = useParams();
@@ -22,66 +24,226 @@ const OrderDetails = () => {
         fetchOrderDetails();
     }, [id]);
 
-    if (loading) return <div className="text-center py-10">Loading order details...</div>;
-    if (!order) return <div className="text-center py-10">Order not found</div>;
+    const handleCancelOrder = async () => {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, cancel it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                setLoading(true);
+                await api.put(`/orders/${id}/cancel`);
+
+                await Swal.fire(
+                    'Cancelled!',
+                    'Your order has been cancelled.',
+                    'success'
+                );
+
+                // Refresh order data
+                const { data } = await api.get(`/orders/${id}`);
+                setOrder(data.order);
+                setLoading(false);
+            } catch (error) {
+                console.error(error);
+                setLoading(false);
+                Swal.fire(
+                    'Error!',
+                    error.response?.data?.message || 'Failed to cancel order',
+                    'error'
+                );
+            }
+        }
+    };
+
+    if (loading) return <div className="flex justify-center py-20"><Loader /></div>;
+    if (!order) return <div className="text-center py-20 text-gray-500">Order not found</div>;
+
+    // Stepper Logic
+    const steps = [
+        { label: 'Order Confirmed', date: order.createdAt },
+        { label: 'Shipped', date: order.orderStatus === 'Shipped' || order.orderStatus === 'Out For Delivery' || order.orderStatus === 'Delivered' ? (order.shippedAt || 'In Progress') : null },
+        { label: 'Out For Delivery', date: order.orderStatus === 'Out For Delivery' || order.orderStatus === 'Delivered' ? (order.outForDeliveryAt || 'In Progress') : null },
+        { label: 'Delivered', date: order.deliveredAt }
+    ];
+
+    const getCurrentStepIndex = () => {
+        if (order.orderStatus === 'Delivered') return 3;
+        if (order.orderStatus === 'Out For Delivery') return 2;
+        if (order.orderStatus === 'Shipped') return 1;
+        if (order.orderStatus === 'Processing') return 0;
+        return -1; // Cancelled or other
+    };
+
+    const currentStep = getCurrentStepIndex();
+    const isCancelled = order.orderStatus === 'Cancelled';
+
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-8">Order Details</h1>
-                <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
-                    <div className="px-4 py-5 sm:px-6">
-                        <h3 className="text-lg leading-6 font-medium text-blue-600">Order #{order._id}</h3>
-                    </div>
-                    <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
-                        <dl className="sm:divide-y sm:divide-gray-200">
-                            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                <dt className="text-sm font-medium text-gray-500">Shipping Info</dt>
-                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    {order.user && order.user.name}, <br />
-                                    {order.shippingInfo.phoneNo}, <br />
-                                    {order.shippingInfo.address}, {order.shippingInfo.city}, {order.shippingInfo.state}, {order.shippingInfo.country} - {order.shippingInfo.pinCode}
-                                </dd>
+        <div className="min-h-screen bg-gray-100 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                {/* LEFT COLUMN: Order Items & Status */}
+                <div className="lg:col-span-2 space-y-4">
+
+                    {/* Order Items Card */}
+                    {order.orderItems.map((item) => (
+                        <div key={item.product} className="bg-white p-6 rounded shadow-sm relative">
+                            <div className="flex gap-4">
+                                <div className="w-24 h-24 flex-shrink-0">
+                                    <img
+                                        src={item.image.startsWith('http') ? item.image : `${api.defaults.baseURL.replace('/api', '')}/${item.image}`}
+                                        alt={item.name}
+                                        className="w-full h-full object-contain"
+                                    />
+                                </div>
+                                <div>
+                                    <h3 className="font-medium text-gray-900 text-lg">{item.name}</h3>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Color: {item.color || 'Standard'} &bull; Seller: Cannot determine
+                                    </p>
+                                    <p className="text-lg font-bold text-gray-900 mt-2">
+                                        ₹{item.price} <span className="text-sm text-green-600 font-normal ml-2">{item.quantity} offer applied</span>
+                                    </p>
+                                </div>
                             </div>
-                            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                <dt className="text-sm font-medium text-gray-500">Payment</dt>
-                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    <span className={order.paymentInfo.status === 'succeeded' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
-                                        {order.paymentInfo.status === 'succeeded' ? 'PAID' : 'NOT PAID'}
-                                    </span>
-                                </dd>
+                        </div>
+                    ))}
+
+                    {/* Order Status Stepper Card */}
+                    <div className="bg-white p-6 rounded shadow-sm">
+                        <h3 className="font-bold text-gray-900 mb-6">Order Status</h3>
+
+                        {isCancelled ? (
+                            <div className="flex items-center gap-3 text-red-600 bg-red-50 p-4 rounded">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                <span className="font-bold">This order has been Cancelled</span>
                             </div>
-                            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                <dt className="text-sm font-medium text-gray-500">Order Status</dt>
-                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    <span className={order.orderStatus === 'Delivered' ? 'text-green-600 font-bold' : 'text-blue-600 font-bold'}>
-                                        {order.orderStatus}
-                                    </span>
-                                </dd>
+                        ) : (
+                            <div className="relative">
+                                {steps.map((step, index) => (
+                                    <div key={step.label} className="flex gap-4 pb-8 last:pb-0 relative">
+                                        {/* Connecting Line */}
+                                        {index !== steps.length - 1 && (
+                                            <div className={`absolute left-[11px] top-6 bottom-0 w-0.5 ${index < currentStep ? 'bg-green-500' : 'bg-gray-200'}`}></div>
+                                        )}
+
+                                        {/* Dot */}
+                                        <div className={`z-10 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${index <= currentStep ? 'bg-green-500' : 'bg-gray-200'}`}>
+                                            {index <= currentStep && (
+                                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            )}
+                                        </div>
+
+                                        {/* Content */}
+                                        <div>
+                                            <p className={`font-medium ${index <= currentStep ? 'text-gray-900' : 'text-gray-400'}`}>
+                                                {step.label}
+                                            </p>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                                {step.date ? new Date(step.date).toDateString() : ''}
+                                            </p>
+                                            {/* Specialized message for active step */}
+                                            {index === currentStep && currentStep < 3 && (
+                                                <div className="mt-2 bg-blue-50 text-blue-800 text-xs px-3 py-2 rounded">
+                                                    Your item is currently {step.label.toLowerCase()}.
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        </dl>
+                        )}
                     </div>
                 </div>
 
-                <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                    <div className="px-4 py-5 sm:px-6">
-                        <h3 className="text-lg leading-6 font-medium text-gray-900">Order Items</h3>
+                {/* RIGHT COLUMN: Delivery & Price */}
+                <div className="space-y-4">
+
+                    {/* Shipping Details */}
+                    <div className="bg-white p-6 rounded shadow-sm">
+                        <h3 className="font-bold text-gray-900 mb-4 border-b pb-2">Delivery details</h3>
+                        <div className="mb-4">
+                            <div className="flex items-start gap-3 mb-2">
+                                <div className="mt-1 text-gray-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                                    </svg>
+                                </div>
+                                <div className="text-sm">
+                                    <p className="font-semibold">{order.shippingInfo.name}</p>
+                                    <p className="text-gray-600">
+                                        {order.shippingInfo.address}, {order.shippingInfo.city}<br />
+                                        {order.shippingInfo.state} - {order.shippingInfo.pinCode}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="text-gray-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                                    </svg>
+                                </div>
+                                <p className="text-sm font-semibold">{order.shippingInfo.phoneNo}</p>
+                            </div>
+                        </div>
                     </div>
-                    <ul className="divide-y divide-gray-200">
-                        {order.orderItems.map((item) => (
-                            <li key={item.product} className="px-4 py-4 sm:px-6 flex items-center">
-                                <div className="flex-shrink-0 h-16 w-16">
-                                    <img className="h-16 w-16 rounded-md object-cover" src={item.image} alt={item.name} />
-                                </div>
-                                <div className="ml-4 flex-1">
-                                    <div className="flex justify-between text-base font-medium text-gray-900">
-                                        <h3><Link to={`/product/${item.product}`}>{item.name}</Link></h3>
-                                        <p>{item.quantity} x ₹{item.price} = <b>₹{item.quantity * item.price}</b></p>
-                                    </div>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+
+                    {/* Price Details */}
+                    <div className="bg-white p-6 rounded shadow-sm">
+                        <h3 className="font-bold text-gray-900 mb-4 border-b pb-2">Price details</h3>
+                        <div className="space-y-3 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Listing price</span>
+                                <span>₹{order.itemsPrice}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Tax</span>
+                                <span>₹{order.taxPrice}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Delivery Charges</span>
+                                <span className="text-green-600">{order.shippingPrice === 0 ? 'Free' : `₹${order.shippingPrice}`}</span>
+                            </div>
+                            <div className="flex justify-between border-t border-dashed pt-3 mt-3 font-bold text-lg">
+                                <span>Total Amount</span>
+                                <span>₹{order.totalPrice}</span>
+                            </div>
+                        </div>
+                        <div className="mt-4 bg-gray-50 p-3 rounded text-xs text-gray-500">
+                            <div className="flex justify-between mb-1">
+                                <span>Payment Mode</span>
+                                <span className="font-medium text-gray-800">{order.paymentInfo.method || 'Online'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Payment Status</span>
+                                <span className={`font-medium ${order.paymentInfo.status === 'succeeded' ? 'text-green-600' : 'text-red-600'}`}>
+                                    {order.paymentInfo.status === 'succeeded' ? 'Paid' : 'Pending/Failed'}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Cancel Order Button */}
+                        {order.orderStatus === 'Processing' && (
+                            <button
+                                onClick={handleCancelOrder}
+                                className="w-full mt-4 bg-red-50 text-red-600 border border-red-200 py-2 rounded font-medium hover:bg-red-100 transition-colors"
+                            >
+                                Cancel Order
+                            </button>
+                        )}
+                    </div>
+
                 </div>
             </div>
         </div>

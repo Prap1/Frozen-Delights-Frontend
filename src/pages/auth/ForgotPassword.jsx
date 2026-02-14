@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
+import Spinner from '../../components/ui/Spinner';
+import Loader from '../../components/ui/Loader';
+import { toast } from 'react-toastify';
 
 const ForgotPassword = () => {
     const [step, setStep] = useState(1); // 1: Email, 2: OTP & New Password
@@ -11,6 +14,7 @@ const ForgotPassword = () => {
     const navigate = useNavigate();
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
+    const { loading } = useAuth();
 
     const handleSendOTP = async (e) => {
         e.preventDefault();
@@ -20,8 +24,11 @@ const ForgotPassword = () => {
             await forgotPassword(email);
             setStep(2);
             setMessage('OTP sent to your email.');
+            toast.success('OTP sent to your email.');
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to send OTP');
+            const errorMsg = err?.message || 'Failed to send OTP';
+            setError(errorMsg);
+            toast.error(errorMsg);
         }
     };
 
@@ -30,15 +37,19 @@ const ForgotPassword = () => {
         setError('');
         try {
             await resetPassword(email, otp, newPassword);
+            toast.success('Password reset successful. Please login.');
             navigate('/login');
         } catch (err) {
-            setError(err.response?.data?.message || 'Password reset failed');
+            const errorMsg = err?.message || 'Password reset failed';
+            setError(errorMsg);
+            toast.error(errorMsg);
         }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8">
+                {loading && <div className="flex justify-center"><Loader /></div>}
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
                         {step === 1 ? 'Forgot Password' : 'Reset Password'}
@@ -69,9 +80,10 @@ const ForgotPassword = () => {
                         <div>
                             <button
                                 type="submit"
-                                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                disabled={loading}
+                                className="group relative w-full flex justify-center items-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                             >
-                                Send OTP
+                                {loading ? <Spinner /> : 'Send OTP'}
                             </button>
                         </div>
                     </form>
@@ -103,9 +115,10 @@ const ForgotPassword = () => {
                         <div>
                             <button
                                 type="submit"
-                                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                disabled={loading}
+                                className="group relative w-full flex justify-center items-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                             >
-                                Reset Password
+                                {loading ? <Spinner /> : 'Reset Password'}
                             </button>
                         </div>
                     </form>

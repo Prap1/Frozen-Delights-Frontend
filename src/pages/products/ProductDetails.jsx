@@ -1,33 +1,24 @@
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import api from '../../services/api';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProductDetails } from '../../features/products/productSlice';
 import { addToCart } from '../../features/cart/cartSlice';
+import Loader from '../../components/ui/Loader';
+import Swal from 'sweetalert2';
 
 const ProductDetails = () => {
     const { id } = useParams();
-    const [product, setProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [quantity, setQuantity] = useState(1);
     const dispatch = useDispatch();
+    const { product, loading, error } = useSelector((state) => state.products);
+    const [quantity, setQuantity] = useState(1);
 
     useEffect(() => {
-        const fetchProduct = async () => {
-            try {
-                const res = await api.get(`/products/${id}`);
-                setProduct(res.data.product);
-                setLoading(false);
-            } catch (err) {
-                setError('Failed to fetch product details');
-                setLoading(false);
-            }
-        };
-
-        fetchProduct();
-    }, [id]);
+        dispatch(fetchProductDetails(id));
+    }, [dispatch, id]);
 
     const addToCartHandler = () => {
+        if (product.Stock < 1) return;
+
         dispatch(addToCart({
             product: product._id,
             name: product.name,
@@ -37,12 +28,19 @@ const ProductDetails = () => {
             quantity,
             vendor: product.vendor
         }));
-        alert('Item Added to Cart');
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Added to Cart',
+            text: 'Item has been added to your cart successfully!',
+            timer: 2000,
+            showConfirmButton: false
+        });
     };
 
-    if (loading) return <div className="text-center py-10">Loading...</div>;
-    if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
-    if (!product) return <div className="text-center py-10">Product not found</div>;
+    if (loading) return <div className="flex justify-center py-20"><Loader /></div>;
+    if (error) return <div className="text-center py-20 text-red-500">{error.message || 'Error loading product'}</div>;
+    if (!product) return <div className="text-center py-20">Product not found</div>;
 
     return (
         <div className="bg-white min-h-screen py-12">

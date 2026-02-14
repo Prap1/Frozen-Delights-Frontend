@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
+import Swal from 'sweetalert2';
 import DataTable from 'react-data-table-component';
 import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { fetchProducts, createProduct, deleteProduct, resetProductState } from '../../features/products/productSlice';
+import { createProduct, deleteProduct, resetProductState, fetchAdminProducts } from '../../features/products/productSlice';
 import { fetchCategories } from '../../features/categories/categorySlice';
 import Loader from '../../components/ui/Loader';
 import Modal from '../../components/ui/Modal';
@@ -21,7 +22,7 @@ const AdminProducts = () => {
     const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
     useEffect(() => {
-        dispatch(fetchProducts());
+        dispatch(fetchAdminProducts());
         dispatch(fetchCategories());
     }, [dispatch]);
 
@@ -43,13 +44,34 @@ const AdminProducts = () => {
         if (data.image[0]) {
             formData.append('image', data.image[0]);
         }
+
+        // Debug FormData
+        for (let [key, value] of formData.entries()) {
+            console.log(`FormData: ${key} =`, value);
+        }
+
         dispatch(createProduct(formData));
     };
 
     const handleDelete = (id) => {
-        if (window.confirm('Are you sure you want to delete this product?')) {
-            dispatch(deleteProduct(id));
-        }
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                dispatch(deleteProduct(id));
+                Swal.fire(
+                    'Deleted!',
+                    'Product has been deleted.',
+                    'success'
+                )
+            }
+        })
     };
 
     const columns = [

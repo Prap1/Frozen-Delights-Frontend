@@ -19,9 +19,10 @@ const ProductList = () => {
 
     const [keyword, setKeyword] = useState("");
     const [category, setCategory] = useState("");
-    const [price, setPrice] = useState([0, 25000]);
+    const [price, setPrice] = useState([0, 100000]);
     const [currentPage, setCurrentPage] = useState(1);
     const [ratings, setRatings] = useState(0);
+    const [showFilters, setShowFilters] = useState(false);
 
     // Debounce keyword search
     useEffect(() => {
@@ -53,81 +54,91 @@ const ProductList = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Filters Sidebar */}
                     <div className="md:col-span-1 bg-white p-6 rounded-lg shadow-md h-fit">
-                        <h3 className="text-lg font-bold mb-4">Filters</h3>
-
-                        {/* Search */}
-                        <div className="mb-6">
-                            <input
-                                type="text"
-                                placeholder="Search products..."
-                                className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                value={keyword}
-                                onChange={(e) => setKeyword(e.target.value)}
-                            />
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-bold">Filters</h3>
+                            <button
+                                className="md:hidden text-blue-600 font-medium"
+                                onClick={() => setShowFilters(!showFilters)}
+                            >
+                                {showFilters ? 'Hide' : 'Show'}
+                            </button>
                         </div>
 
-                        {/* Categories */}
-                        <div className="mb-6">
-                            <h4 className="font-semibold mb-2">Categories</h4>
-                            <ul className="space-y-2">
-                                <li
-                                    className={`cursor-pointer ${category === "" ? "font-bold text-blue-600" : "text-gray-600"}`}
-                                    onClick={() => setCategory("")}
-                                >
-                                    All
-                                </li>
-                                {categories.map((cat) => (
-                                    <li
-                                        key={cat}
-                                        className={`cursor-pointer ${category === cat ? "font-bold text-blue-600" : "text-gray-600 hover:text-blue-500"}`}
-                                        onClick={() => setCategory(cat)}
-                                    >
-                                        {cat}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {/* Price Range */}
-                        <div className="mb-6">
-                            <h4 className="font-semibold mb-2">Price Range</h4>
-                            {/* Simple Inputs for now to avoid slider dependency issues if any */}
-                            <div className="flex items-center space-x-2">
+                        <div className={`${showFilters ? 'block' : 'hidden'} md:block`}>
+                            {/* Search */}
+                            <div className="mb-6">
                                 <input
-                                    type="number"
-                                    className="w-20 border border-gray-300 rounded p-1"
-                                    value={price[0]}
-                                    onChange={(e) => setPrice([Number(e.target.value), price[1]])}
-                                />
-                                <span>-</span>
-                                <input
-                                    type="number"
-                                    className="w-20 border border-gray-300 rounded p-1"
-                                    value={price[1]}
-                                    onChange={(e) => setPrice([price[0], Number(e.target.value)])}
+                                    type="text"
+                                    placeholder="Search products..."
+                                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={keyword}
+                                    onChange={(e) => setKeyword(e.target.value)}
                                 />
                             </div>
-                        </div>
 
-                        {/* Reset */}
-                        <button
-                            className="w-full bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300 transition"
-                            onClick={() => {
-                                setKeyword("");
-                                setCategory("");
-                                setPrice([0, 25000]);
-                                setRatings(0);
-                            }}
-                        >
-                            Reset Filters
-                        </button>
+                            {/* Categories */}
+                            <div className="mb-6">
+                                <h4 className="font-semibold mb-2">Categories</h4>
+                                <ul className="space-y-2">
+                                    <li
+                                        className={`cursor-pointer ${category === "" ? "font-bold text-blue-600" : "text-gray-600"}`}
+                                        onClick={() => setCategory("")}
+                                    >
+                                        All
+                                    </li>
+                                    {categories.map((cat) => (
+                                        <li
+                                            key={cat}
+                                            className={`cursor-pointer ${category === cat ? "font-bold text-blue-600" : "text-gray-600 hover:text-blue-500"}`}
+                                            onClick={() => setCategory(cat)}
+                                        >
+                                            {cat}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            {/* Price Range */}
+                            <div className="mb-6">
+                                <h4 className="font-semibold mb-2">Price Range</h4>
+                                {/* Simple Inputs for now to avoid slider dependency issues if any */}
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="number"
+                                        className="w-20 border border-gray-300 rounded p-1"
+                                        value={price[0]}
+                                        onChange={(e) => setPrice([Number(e.target.value), price[1]])}
+                                    />
+                                    <span>-</span>
+                                    <input
+                                        type="number"
+                                        className="w-20 border border-gray-300 rounded p-1"
+                                        value={price[1]}
+                                        onChange={(e) => setPrice([price[0], Number(e.target.value)])}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Reset */}
+                            <button
+                                className="w-full bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300 transition"
+                                onClick={() => {
+                                    setKeyword("");
+                                    setCategory("");
+                                    setPrice([0, 100000]);
+                                    setRatings(0);
+                                }}
+                            >
+                                Reset Filters
+                            </button>
+                        </div>
                     </div>
 
                     {/* Product Grid */}
                     <div className="md:col-span-3">
                         {products && products.length > 0 ? (
-                            <div className="grid gap-y-10 gap-x-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
-                                {products.map((product) => (
+                            <div className="grid gap-y-10 gap-x-6 grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
+                                {products.filter(product => product.Stock >= 1).map((product) => (
                                     <ProductCard key={product._id} product={product} />
                                 ))}
                             </div>

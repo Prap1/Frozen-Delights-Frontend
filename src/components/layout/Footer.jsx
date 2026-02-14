@@ -13,6 +13,8 @@ const Footer = () => {
                         <p className="text-gray-400 text-sm mt-4 leading-relaxed">
                             Crafting moments of joy with premium frozen desserts.
                             Made with love and the finest ingredients.
+                            <br />
+                            <Link to="/about" className="text-blue-400 hover:text-blue-300 text-xs mt-2 inline-block">Read Our Story &rarr;</Link>
                         </p>
                     </div>
 
@@ -21,9 +23,9 @@ const Footer = () => {
                         <h3 className="text-sm font-semibold text-gray-200 tracking-wider uppercase mb-4">Shop</h3>
                         <ul className="space-y-3">
                             <li><Link to="/products" className="text-gray-400 hover:text-white transition-colors">All Products</Link></li>
-                            <li><Link to="/best-sellers" className="text-gray-400 hover:text-white transition-colors">Best Sellers</Link></li>
+                            <li><Link to="/bestsellers" className="text-gray-400 hover:text-white transition-colors">Best Sellers</Link></li>
                             <li><Link to="/new-arrivals" className="text-gray-400 hover:text-white transition-colors">New Arrivals</Link></li>
-                            <li><Link to="/gift-cards" className="text-gray-400 hover:text-white transition-colors">Gift Cards</Link></li>
+                            {/* <li><Link to="/gift-cards" className="text-gray-400 hover:text-white transition-colors">Gift Cards</Link></li> */}
                         </ul>
                     </div>
 
@@ -32,9 +34,9 @@ const Footer = () => {
                         <h3 className="text-sm font-semibold text-gray-200 tracking-wider uppercase mb-4">Support</h3>
                         <ul className="space-y-3">
                             <li><Link to="/contact" className="text-gray-400 hover:text-white transition-colors">Contact Us</Link></li>
-                            <li><Link to="/faq" className="text-gray-400 hover:text-white transition-colors">FAQs</Link></li>
-                            <li><Link to="/shipping" className="text-gray-400 hover:text-white transition-colors">Shipping Info</Link></li>
-                            <li><Link to="/returns" className="text-gray-400 hover:text-white transition-colors">Returns</Link></li>
+                            <li><Link to="/helpcentre" className="text-gray-400 hover:text-white transition-colors">Help Centre</Link></li>
+                            <li><Link to="/shipping-policy" className="text-gray-400 hover:text-white transition-colors">Shipping Info</Link></li>
+                            <li><Link to="/return-policy" className="text-gray-400 hover:text-white transition-colors">Returns Policy</Link></li>
                         </ul>
                     </div>
 
