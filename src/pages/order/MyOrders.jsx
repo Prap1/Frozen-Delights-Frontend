@@ -6,6 +6,7 @@ import Loader from '../../components/ui/Loader';
 
 const MyOrders = () => {
     const { user } = useSelector((state) => state.auth);
+    const {products}=useSelector((state)=>state.products)
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -211,7 +212,7 @@ const OrderCard = ({ order }) => {
 
                 <div className="mt-4 flex flex-col gap-2">
                     {order.orderStatus === 'Delivered' && (
-                        <Link to={`/order/${order._id}`} className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                        <Link to={`/product/${order.orderItems[0].product}`} className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
                             ★ Rate & Review Product
                         </Link>
                     )}

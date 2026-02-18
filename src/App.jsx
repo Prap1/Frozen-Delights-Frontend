@@ -65,8 +65,8 @@ function App() {
 
   // 🔥 Restore auth on refresh
   useEffect(() => {
-    dispatch(checkAuth());
-  }, [dispatch]);
+  dispatch(checkAuth());
+}, [dispatch]);
 
   // Optional loader while checking auth
   // if (loading) {

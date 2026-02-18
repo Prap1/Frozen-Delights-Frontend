@@ -140,8 +140,10 @@ const initialState = {
     user: null,
     isAuthenticated: false,
     loading: false,
+    authChecked: false, // 👈 ADD THIS
     error: null,
 };
+
 
 /* ===================== SLICE ===================== */
 const authSlice = createSlice({
@@ -203,19 +205,19 @@ const authSlice = createSlice({
             })
 
             /* ---------- CHECK AUTH ---------- */
-            .addCase(checkAuth.pending, (state) => {
-                state.loading = true;
-            })
-            .addCase(checkAuth.fulfilled, (state, action) => {
-                state.loading = false;
-                state.user = action.payload;
-                state.isAuthenticated = true;
-            })
-            .addCase(checkAuth.rejected, (state) => {
-                state.loading = false;
-                state.user = null;
-                state.isAuthenticated = false;
-            })
+          .addCase(checkAuth.pending, (state) => {
+    state.authChecked = false;
+})
+.addCase(checkAuth.fulfilled, (state, action) => {
+    state.user = action.payload;
+    state.isAuthenticated = true;
+    state.authChecked = true;
+})
+.addCase(checkAuth.rejected, (state) => {
+    state.user = null;
+    state.isAuthenticated = false;
+    state.authChecked = true; // 👈 even on failure
+})
 
             /* ---------- LOGOUT ---------- */
             .addCase(logout.fulfilled, (state) => {

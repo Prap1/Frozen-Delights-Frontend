@@ -1,35 +1,35 @@
-import { Navigate, Outlet } from 'react-router-dom';
-import useAuth from '../../hooks/useAuth';
+import { Navigate, Outlet } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
+import Loader from "../ui/Loader";
 
 const ProtectedRoute = ({ isAdmin = false, isVendor = false }) => {
-    const { loading, isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, authChecked } = useAuth();
 
-    // While checking auth (checkAuth API)
-    if (loading) {
-        return <div className="text-center mt-20">Loading...</div>;
-    }
+  // ⏳ WAIT for auth check to finish
+  if (!authChecked) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <Loader />
+      </div>
+    );
+  }
 
-    // Not logged in
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
-    }
+  // 🔐 Not logged in
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />;
+  }
 
-    // Safety check (user still null)
-    if (!user) {
-        return <Navigate to="/login" replace />;
-    }
+  // 👑 Admin-only
+  if (isAdmin && user.role !== "admin") {
+    return <Navigate to="/" replace />;
+  }
 
-    // Admin only
-    if (isAdmin && user.role !== 'admin') {
-        return <Navigate to="/" replace />;
-    }
+  // 🏪 Vendor-only
+  if (isVendor && user.role !== "vendor") {
+    return <Navigate to="/" replace />;
+  }
 
-    // Vendor only
-    if (isVendor && user.role !== 'vendor') {
-        return <Navigate to="/" replace />;
-    }
-
-    return <Outlet />;
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

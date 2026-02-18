@@ -56,7 +56,7 @@ const ProductCard = ({ product }) => {
                     <span className="text-xs text-indigo-500 font-semibold uppercase tracking-wide">
                         {product.category}
                     </span>
-                    <Link to={`/products/${product._id}`}>
+                    <Link to={`/product/${product._id}`}>
                         <h3 className="text-lg font-bold text-gray-900 hover:text-indigo-600 transition-colors line-clamp-2 mt-1">
                             {product.name}
                         </h3>
