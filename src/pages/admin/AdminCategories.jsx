@@ -4,16 +4,17 @@ import DataTable from 'react-data-table-component';
 import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchCategories, createCategory, deleteCategory, clearCategoryMessage } from '../../features/categories/categorySlice';
+import { fetchCategories, createCategory, updateCategory, deleteCategory, clearCategoryMessage } from '../../features/categories/categorySlice';
 import Loader from '../../components/ui/Loader';
 import Modal from '../../components/ui/Modal';
 
 const AdminCategories = () => {
     const dispatch = useDispatch();
     const { categories, loading, message } = useSelector((state) => state.categories);
+    const [editId, setEditId] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const { register, handleSubmit, reset, formState: { errors } } = useForm();
+    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
 
     useEffect(() => {
         dispatch(fetchCategories());
@@ -23,13 +24,31 @@ const AdminCategories = () => {
         if (message) {
             setIsModalOpen(false);
             reset();
+            setEditId(null);
             setTimeout(() => dispatch(clearCategoryMessage()), 3000);
         }
     }, [message, dispatch, reset]);
 
     const onSubmit = (data) => {
-        dispatch(createCategory(data));
+        if (editId) {
+            dispatch(updateCategory({ id: editId, categoryData: data }));
+        } else {
+            dispatch(createCategory(data));
+        }
     };
+
+    const handleEdit = (category) => {
+        setEditId(category._id);
+        setValue('name', category.name);
+        setValue('description', category.description);
+        setIsModalOpen(true);
+    };
+
+    const handleOpenModal = () => {
+        setEditId(null);
+        reset();
+        setIsModalOpen(true);
+    }
 
     const handleDelete = (id) => {
         Swal.fire({
@@ -68,7 +87,10 @@ const AdminCategories = () => {
             name: 'Actions',
             cell: (row) => (
                 <div className="flex space-x-2">
-                    <button className="p-2 text-blue-600 hover:text-blue-800 transition-colors">
+                    <button
+                        onClick={() => handleEdit(row)}
+                        className="p-2 text-blue-600 hover:text-blue-800 transition-colors"
+                    >
                         <FaEdit />
                     </button>
                     <button
@@ -97,7 +119,7 @@ const AdminCategories = () => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-800">Categories</h1>
                 <button
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={handleOpenModal}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
                 >
                     <FaPlus /> Add New Category
@@ -117,8 +139,8 @@ const AdminCategories = () => {
                 />
             </div>
 
-            {/* Add Category Modal */}
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add New Category">
+            {/* Add/Edit Category Modal */}
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editId ? "Edit Category" : "Add New Category"}>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Name</label>
@@ -151,7 +173,7 @@ const AdminCategories = () => {
                             disabled={loading}
                             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                         >
-                            {loading ? 'Saving...' : 'Save Category'}
+                            {loading ? 'Saving...' : (editId ? 'Update Category' : 'Save Category')}
                         </button>
                     </div>
                 </form>

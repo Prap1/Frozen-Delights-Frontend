@@ -9,6 +9,12 @@ const OrderDetails = () => {
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // Return State
+    const [returnModalOpen, setReturnModalOpen] = useState(false);
+    const [returnReason, setReturnReason] = useState('');
+    const [returnDescription, setReturnDescription] = useState('');
+    const [returnImages, setReturnImages] = useState([]);
+
     useEffect(() => {
         const fetchOrderDetails = async () => {
             try {
@@ -60,6 +66,48 @@ const OrderDetails = () => {
                 );
             }
         }
+    }
+
+
+    const handleReturnSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!returnReason) {
+            Swal.fire('Error', 'Please select a reason for return', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('reason', returnReason);
+        formData.append('description', returnDescription);
+        Array.from(returnImages).forEach(file => {
+            formData.append('images', file);
+        });
+
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('token');
+            const config = {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            };
+
+            await api.post(`/orders/${id}/return`, formData, config);
+
+            setLoading(false);
+            setReturnModalOpen(false);
+            Swal.fire('Success', 'Return request submitted successfully', 'success');
+
+            // Refresh order
+            const { data } = await api.get(`/orders/${id}`);
+            setOrder(data.order);
+
+        } catch (error) {
+            setLoading(false);
+            console.error(error);
+            Swal.fire('Error', error.response?.data?.message || 'Failed to submit return request', 'error');
+        }
     };
 
     if (loading) return <div className="flex justify-center py-20"><Loader /></div>;
@@ -74,6 +122,8 @@ const OrderDetails = () => {
     ];
 
     const getCurrentStepIndex = () => {
+        if (order.orderStatus === 'Returned') return 4;
+        if (order.orderStatus === 'Return Requested') return 3;
         if (order.orderStatus === 'Delivered') return 3;
         if (order.orderStatus === 'Out For Delivery') return 2;
         if (order.orderStatus === 'Shipped') return 1;
@@ -106,7 +156,7 @@ const OrderDetails = () => {
                                 <div>
                                     <h3 className="font-medium text-gray-900 text-lg">{item.name}</h3>
                                     <p className="text-sm text-gray-500 mt-1">
-                                        Color: {item.color || 'Standard'} &bull; Seller: Cannot determine
+                                        Color: {item.color || 'Standard'} &bull; Seller: {item.vendor?.role === 'admin' ? 'Admin' : (item.vendor?.brandName || item.vendor?.username || 'Seller')}
                                     </p>
                                     <p className="text-lg font-bold text-gray-900 mt-2">
                                         ₹{item.price} <span className="text-sm text-green-600 font-normal ml-2">{item.quantity} offer applied</span>
@@ -164,7 +214,25 @@ const OrderDetails = () => {
                                 ))}
                             </div>
                         )}
+
                     </div>
+
+                    {/* Return Status Badges (Mobile/Desktop friendly placement if needed, or in Price details) */}
+                    {(order.orderStatus === 'Return Requested' || order.orderStatus === 'Returned') && (
+                        <div className={`p-4 rounded shadow-sm flex items-center gap-3 ${order.orderStatus === 'Returned' ? 'bg-orange-50 text-orange-800' : 'bg-yellow-50 text-yellow-800'}`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+                            </svg>
+                            <div>
+                                <h4 className="font-bold">{order.orderStatus === 'Returned' ? 'Order Returned' : 'Return Requested'}</h4>
+                                <p className="text-sm">
+                                    {order.orderStatus === 'Returned'
+                                        ? 'Your return has been processed and approved.'
+                                        : 'We have received your return request. We will review it shortly.'}
+                                </p>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* RIGHT COLUMN: Delivery & Price */}
@@ -242,11 +310,96 @@ const OrderDetails = () => {
                                 Cancel Order
                             </button>
                         )}
+
+                        {order.orderStatus === 'Delivered' && (
+                            <button
+                                onClick={() => setReturnModalOpen(true)}
+                                className="w-full mt-4 bg-gray-900 text-white border border-gray-900 py-2 rounded font-medium hover:bg-gray-800 transition-colors"
+                            >
+                                Return Product
+                            </button>
+                        )}
+
+                        {order.returnRequest && order.returnRequest.status === 'Pending' && (
+                            <div className="w-full mt-4 bg-yellow-50 text-yellow-800 border border-yellow-200 py-2 rounded font-medium text-center text-sm">
+                                Return Requested
+                            </div>
+                        )}
                     </div>
 
                 </div>
             </div>
-        </div>
+
+            {/* Return Modal */}
+            {
+                returnModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
+                        <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+                            <h2 className="text-2xl font-bold mb-4 text-gray-900">Request Return</h2>
+                            <form onSubmit={handleReturnSubmit}>
+                                <div className="mb-4">
+                                    <label className="block text-gray-700 font-bold mb-2">Reason for Return</label>
+                                    <select
+                                        className="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                        value={returnReason}
+                                        onChange={(e) => setReturnReason(e.target.value)}
+                                        required
+                                    >
+                                        <option value="">Select a reason</option>
+                                        <option value="Damaged Product">Damaged Product</option>
+                                        <option value="Wrong Item">Wrong Item</option>
+                                        <option value="Quality Issue">Quality Issue</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div className="mb-4">
+                                    <label className="block text-gray-700 font-bold mb-2">Description</label>
+                                    <textarea
+                                        className="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                        rows="3"
+                                        placeholder="Please describe the issue..."
+                                        value={returnDescription}
+                                        onChange={(e) => setReturnDescription(e.target.value)}
+                                    ></textarea>
+                                </div>
+                                <div className="mb-6">
+                                    <label className="block text-gray-700 font-bold mb-2">Upload Proof Images</label>
+                                    <input
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        onChange={(e) => setReturnImages(e.target.files)}
+                                        className="w-full text-sm text-gray-500
+                                        file:mr-4 file:py-2 file:px-4
+                                        file:rounded-full file:border-0
+                                        file:text-sm file:font-semibold
+                                        file:bg-blue-50 file:text-blue-700
+                                        hover:file:bg-blue-100"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">Select multiple images if needed.</p>
+                                </div>
+                                <div className="flex justify-end gap-3 pt-2 border-t">
+                                    <button
+                                        type="button"
+                                        onClick={() => setReturnModalOpen(false)}
+                                        className="bg-gray-100 text-gray-700 px-4 py-2 rounded hover:bg-gray-200 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors shadow-sm"
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Submitting...' : 'Submit Request'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )
+            }
+        </div >
     );
 };
 

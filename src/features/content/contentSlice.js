@@ -94,7 +94,10 @@ export const createContent = createAsyncThunk(
     'content/createContent',
     async (contentData, { rejectWithValue }) => {
         try {
-            const response = await api.post('/content/admin/items', contentData);
+            const config = {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            };
+            const response = await api.post('/content/admin/items', contentData, config);
             return response.data.content;
         } catch (err) {
             return rejectWithValue(err.response?.data?.message || 'Failed to create content');
@@ -106,7 +109,10 @@ export const updateContent = createAsyncThunk(
     'content/updateContent',
     async ({ id, contentData }, { rejectWithValue }) => {
         try {
-            const response = await api.put(`/content/admin/items/${id}`, contentData);
+            const config = {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            };
+            const response = await api.put(`/content/admin/items/${id}`, contentData, config);
             return response.data.content;
         } catch (err) {
             return rejectWithValue(err.response?.data?.message || 'Failed to update content');

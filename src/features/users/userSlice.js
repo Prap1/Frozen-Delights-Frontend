@@ -40,10 +40,37 @@ export const updateUserRole = createAsyncThunk(
     }
 );
 
+// Fetch Vendor Requests (Admin)
+export const fetchVendorRequests = createAsyncThunk(
+    'users/fetchVendorRequests',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/users/admin/vendor-requests');
+            return response.data.users;
+        } catch (err) {
+            return rejectWithValue(err.response?.data);
+        }
+    }
+);
+
+// Block/Unblock User (Admin)
+export const toggleBlockUser = createAsyncThunk(
+    'users/toggleBlock',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await api.put(`/users/admin/users/${id}/block`);
+            return response.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data);
+        }
+    }
+);
+
 const userSlice = createSlice({
     name: 'users',
     initialState: {
         users: [],
+        vendorRequests: [],
         loading: false,
         error: null,
         message: null,
@@ -78,7 +105,29 @@ const userSlice = createSlice({
                 if (index !== -1) {
                     state.users[index] = action.payload.user;
                 }
+                if (index !== -1) {
+                    state.users[index] = action.payload.user;
+                }
                 state.message = "User updated successfully";
+            })
+            .addCase(toggleBlockUser.fulfilled, (state, action) => {
+                state.loading = false;
+                const index = state.users.findIndex(user => user._id === action.payload.user._id);
+                if (index !== -1) {
+                    state.users[index] = action.payload.user;
+                }
+                state.message = action.payload.message;
+            })
+            .addCase(fetchVendorRequests.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchVendorRequests.fulfilled, (state, action) => {
+                state.loading = false;
+                state.vendorRequests = action.payload;
+            })
+            .addCase(fetchVendorRequests.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
             });
     },
 });

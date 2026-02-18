@@ -33,7 +33,7 @@ const ProductCard = ({ product }) => {
         <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-full relative group">
             {/* Image Container with Hover Effect */}
             <div className="relative overflow-hidden aspect-w-1 aspect-h-1 h-64">
-                <Link to={`/products/${product._id}`}>
+                <Link to={`/product/${product._id}`}>
                     <img
                         src={product.images && product.images[0] ? product.images[0].url : 'https://via.placeholder.com/300'}
                         alt={product.name}
@@ -83,8 +83,8 @@ const ProductCard = ({ product }) => {
                         onClick={addToCartHandler}
                         disabled={product.Stock < 1}
                         className={`p-2 rounded-full transition-colors duration-200 shadow-sm ${product.Stock < 1
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white'
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white'
                             }`}
                         title={product.Stock < 1 ? "Out of Stock" : "Add to Cart"}
                     >

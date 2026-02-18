@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import DataTable from 'react-data-table-component';
-import { FaEdit, FaTrash, FaPlus, FaUserShield } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaUserShield, FaUserSlash, FaUserCheck } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { fetchAllUsers, deleteUser, updateUserRole, clearUserMessage } from '../../features/users/userSlice';
+import { fetchAllUsers, deleteUser, updateUserRole, clearUserMessage, toggleBlockUser } from '../../features/users/userSlice';
 import Loader from '../../components/ui/Loader';
 import Modal from '../../components/ui/Modal';
 
@@ -47,13 +47,6 @@ const AdminUsers = () => {
 
     const handleDelete = (id) => {
         Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
                 dispatch(deleteUser(id));
@@ -65,6 +58,22 @@ const AdminUsers = () => {
             }
         })
     };
+
+    const handleBlock = (user) => {
+        Swal.fire({
+            title: `Are you sure you want to ${user.isBlocked ? 'unblock' : 'block'} this user?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#eab308', // yellow-500
+            cancelButtonColor: '#d33',
+            confirmButtonText: `Yes, ${user.isBlocked ? 'unblock' : 'block'}!`
+        }).then((result) => {
+            if (result.isConfirmed) {
+                dispatch(toggleBlockUser(user._id));
+            }
+        })
+    };
+
 
     const columns = [
         {
@@ -94,6 +103,13 @@ const AdminUsers = () => {
             name: 'Actions',
             cell: (row) => (
                 <div className="flex space-x-2">
+                    <button
+                        onClick={() => handleBlock(row)}
+                        className={`p-2 transition-colors ${row.isBlocked ? 'text-green-600 hover:text-green-800' : 'text-yellow-600 hover:text-yellow-800'}`}
+                        title={row.isBlocked ? "Unblock User" : "Block User"}
+                    >
+                        {row.isBlocked ? <FaUserCheck /> : <FaUserSlash />}
+                    </button>
                     <button
                         onClick={() => handleEdit(row)}
                         className="p-2 text-blue-600 hover:text-blue-800 transition-colors" title="Edit Role"

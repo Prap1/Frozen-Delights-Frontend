@@ -25,7 +25,7 @@ const TermsOfService = () => {
     return (
         <div className="bg-white min-h-screen py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto">
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-8 text-center uppercase tracking-wide">
+                <h1 className="text-3xl font-extrabold text-[#0D1E32] mb-8 text-center uppercase tracking-wide">
                     {termsContent ? termsContent.title : 'Terms of Service'}
                 </h1>
 

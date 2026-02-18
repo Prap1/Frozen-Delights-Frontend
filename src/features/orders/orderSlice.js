@@ -53,6 +53,22 @@ export const updateOrder = createAsyncThunk(
     }
 );
 
+// Request Return
+export const requestReturn = createAsyncThunk(
+    'orders/requestReturn',
+    async ({ id, returnData }, { rejectWithValue }) => {
+        try {
+            const config = {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            };
+            const response = await api.post(`/orders/${id}/return`, returnData, config);
+            return response.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data);
+        }
+    }
+);
+
 const orderSlice = createSlice({
     name: 'orders',
     initialState: {
@@ -105,6 +121,7 @@ const orderSlice = createSlice({
             .addCase(deleteOrder.fulfilled, (state, action) => {
                 state.loading = false;
                 state.orders = state.orders.filter((order) => order._id !== action.payload);
+                state.vendorOrders = state.vendorOrders.filter((order) => order._id !== action.payload);
             })
 
             // Update Order
@@ -117,6 +134,10 @@ const orderSlice = createSlice({
                 const index = state.orders.findIndex(order => order._id === action.payload.order._id);
                 if (index !== -1) {
                     state.orders[index] = action.payload.order;
+                }
+                const vendorIndex = state.vendorOrders.findIndex(order => order._id === action.payload.order._id);
+                if (vendorIndex !== -1) {
+                    state.vendorOrders[vendorIndex] = action.payload.order;
                 }
             })
             .addCase(updateOrder.rejected, (state, action) => {

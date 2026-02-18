@@ -109,6 +109,19 @@ export const resetPassword = createAsyncThunk(
     }
 );
 
+/* ===================== UPDATE PASSWORD ===================== */
+export const updatePassword = createAsyncThunk(
+    'auth/updatePassword',
+    async (passwordData, { rejectWithValue }) => {
+        try {
+            const response = await api.put('/auth/update-password', passwordData);
+            return response.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data);
+        }
+    }
+);
+
 /* ===================== UPDATE PROFILE ===================== */
 export const updateProfile = createAsyncThunk(
     'auth/updateProfile',
@@ -249,6 +262,19 @@ const authSlice = createSlice({
             .addCase(updateProfile.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message || 'Profile update failed';
+            })
+
+            /* ---------- UPDATE PASSWORD ---------- */
+            .addCase(updatePassword.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updatePassword.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(updatePassword.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || 'Password update failed';
             });
     },
 });

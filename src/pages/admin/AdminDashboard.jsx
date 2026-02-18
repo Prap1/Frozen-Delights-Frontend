@@ -74,14 +74,14 @@ const AdminDashboard = () => {
     };
 
     const doughnutChartData = {
-        labels: ['Processing', 'Delivered', 'Cancelled'], // Add cancelled if you have it
+        labels: ['Processing', 'Delivered', 'Cancelled'],
         datasets: [
             {
                 label: '# of Orders',
                 data: [
                     orders.filter(o => o.orderStatus === 'Processing').length,
                     orders.filter(o => o.orderStatus === 'Delivered').length,
-                    orders.filter(o => o.orderStatus === 'Cancelled').length, // Assuming cancelled exists
+                    orders.filter(o => o.orderStatus === 'Cancelled').length,
                 ],
                 backgroundColor: [
                     'rgba(255, 206, 86, 0.6)',
@@ -97,6 +97,28 @@ const AdminDashboard = () => {
             },
         ],
     };
+
+    // Calculate Top Selling Products
+    const getTopProducts = () => {
+        const productMap = {};
+        orders.forEach(order => {
+            order.orderItems.forEach(item => {
+                if (productMap[item.name]) {
+                    productMap[item.name] += item.quantity;
+                } else {
+                    productMap[item.name] = item.quantity;
+                }
+            });
+        });
+
+        const sortedProducts = Object.entries(productMap)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+
+        return sortedProducts;
+    };
+
+    const topProducts = getTopProducts();
 
     const stats = [
         { title: 'Total Orders', value: totalOrders, icon: <FaShoppingCart />, color: 'bg-blue-500' },

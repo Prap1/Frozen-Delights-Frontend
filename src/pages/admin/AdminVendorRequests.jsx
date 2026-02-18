@@ -1,31 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchVendorRequests } from '../../features/users/userSlice';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import Loader from '../../components/ui/Loader';
 
 const AdminVendorRequests = () => {
-    const [requests, setRequests] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    const fetchRequests = async () => {
-        try {
-            const config = {
-                headers: {
-                    // Authorization header removed as we rely on HttpOnly cookies
-                },
-                withCredentials: true
-            };
-            const { data } = await axios.get('http://localhost:5000/api/users/admin/vendor-requests', config);
-            setRequests(data.users);
-            setLoading(false);
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Error fetching requests');
-            setLoading(false);
-        }
-    };
+    const dispatch = useDispatch();
+    const { vendorRequests: requests, loading } = useSelector((state) => state.users);
 
     useEffect(() => {
-        fetchRequests();
-    }, []);
+        dispatch(fetchVendorRequests());
+    }, [dispatch]);
 
     const handleStatusUpdate = async (id, status) => {
         try {
@@ -40,7 +26,7 @@ const AdminVendorRequests = () => {
 
             if (data.success) {
                 toast.success(data.message);
-                fetchRequests(); // Refresh list
+                dispatch(fetchVendorRequests()); // Refresh list
             }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Update failed');

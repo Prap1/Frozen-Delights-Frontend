@@ -1,14 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Swal from 'sweetalert2';
 import DataTable from 'react-data-table-component';
-import { FaTrash, FaEdit, FaPlus, FaImage, FaBullhorn } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaPlus, FaBullhorn } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-    fetchAllBanners, deleteBanner,
     fetchAllContent, deleteContent,
-    createContent,
-    resetContentState
+    createContent
 } from '../../features/content/contentSlice';
 import Loader from '../../components/ui/Loader';
 
@@ -17,13 +15,12 @@ const AdminContent = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const { banners, contentItems, loading, success } = useSelector((state) => state.content);
+    const { contentItems, loading } = useSelector((state) => state.content);
 
-    // Get active tab from URL or default to 'banners'
-    const activeTab = searchParams.get('tab') || 'banners';
+    // Get active tab from URL or default to 'content'
+    const activeTab = searchParams.get('tab') || 'content';
 
     useEffect(() => {
-        dispatch(fetchAllBanners());
         dispatch(fetchAllContent());
     }, [dispatch]);
 
@@ -33,13 +30,11 @@ const AdminContent = () => {
     };
 
     const handleEdit = (item) => {
-        const mode = activeTab === 'banners' ? 'banner' : 'content';
-        navigate(`/admin/content/edit/${item._id}?mode=${mode}&tab=${activeTab}`);
+        navigate(`/admin/content/edit/${item._id}?mode=content&tab=${activeTab}`);
     };
 
     const handleAdd = () => {
-        const mode = activeTab === 'banners' ? 'banner' : 'content';
-        navigate(`/admin/content/new?mode=${mode}&tab=${activeTab}`);
+        navigate(`/admin/content/new?mode=content&tab=${activeTab}`);
     };
 
     const handleDelete = (id) => {
@@ -53,11 +48,7 @@ const AdminContent = () => {
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
-                if (activeTab === 'banners') {
-                    dispatch(deleteBanner(id));
-                } else {
-                    dispatch(deleteContent(id));
-                }
+                dispatch(deleteContent(id));
                 Swal.fire(
                     'Deleted!',
                     'Item has been deleted.',
@@ -67,44 +58,28 @@ const AdminContent = () => {
         })
     };
 
-    // Columns for Banners
-    const bannerColumns = [
-        { name: 'Order', selector: row => row.order, sortable: true, width: '80px' },
-        {
-            name: 'Image',
-            cell: row => <img src={row.image} alt={row.title} className="h-10 w-16 object-cover rounded my-1" />,
-            width: '100px'
-        },
-        { name: 'Title', selector: row => row.title, sortable: true },
-        { name: 'Subtitle', selector: row => row.subtitle, wrap: true },
-        { name: 'Link', selector: row => row.link },
-        {
-            name: 'Status',
-            selector: row => row.isActive ? 'Active' : 'Inactive',
-            sortable: true,
-            cell: row => (
-                <span className={`px-2 py-1 rounded-full text-xs ${row.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {row.isActive ? 'Active' : 'Inactive'}
-                </span>
-            )
-        },
-        {
-            name: 'Actions',
-            cell: row => (
-                <div className="flex space-x-2">
-                    <button onClick={() => handleEdit(row)} className="text-blue-600 hover:text-blue-800"><FaEdit /></button>
-                    <button onClick={() => handleDelete(row._id)} className="text-red-600 hover:text-red-800"><FaTrash /></button>
-                </div>
-            )
-        }
-    ];
-
     // Columns for Content
     const contentColumns = [
         { name: 'Type', selector: row => row.type, sortable: true, width: '120px' },
         { name: 'Title/Question', selector: row => row.title, sortable: true },
         { name: 'Category', selector: row => row.subtitle || '-', sortable: true, width: '150px' },
-        { name: 'Content/Answer', selector: row => row.content, wrap: true },
+        {
+            name: 'Content/Answer',
+            selector: row => row.content,
+            wrap: true,
+            cell: row => {
+                if (!row.content) return '';
+                const words = row.content.split(' ');
+                if (words.length <= 30) return row.content;
+
+                const displayText = words.slice(0, 30).join(' ') + '...';
+                return (
+                    <div title={row.content} className="cursor-help">
+                        {displayText}
+                    </div>
+                );
+            }
+        },
         {
             name: 'Status',
             selector: row => row.isActive ? 'Active' : 'Inactive',
@@ -131,7 +106,7 @@ const AdminContent = () => {
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800">Content Management</h1>
-                    <p className="text-gray-600 mt-2">Manage homepage banners, announcements, and site content.</p>
+                    <p className="text-gray-600 mt-2">Manage announcements, and site content.</p>
                 </div>
                 <div className="flex gap-2">
                     <button
@@ -193,19 +168,13 @@ const AdminContent = () => {
                         onClick={handleAdd}
                         className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                        <FaPlus /> Add New {activeTab === 'banners' ? 'Banner' : activeTab === 'policies' ? 'Policy' : 'Content'}
+                        <FaPlus /> Add New {activeTab === 'policies' ? 'Policy' : 'Content'}
                     </button>
                 </div>
             </div>
 
             {/* Tabs */}
             <div className="flex space-x-4 mb-6 border-b border-gray-200">
-                <button
-                    onClick={() => setActiveTab('banners')}
-                    className={`pb-2 px-4 font-medium transition-colors ${activeTab === 'banners' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                    <FaImage className="inline mr-2" /> Homepage Banners
-                </button>
                 <button
                     onClick={() => setActiveTab('content')}
                     className={`pb-2 px-4 font-medium transition-colors ${activeTab === 'content' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
@@ -222,13 +191,11 @@ const AdminContent = () => {
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <DataTable
-                    columns={activeTab === 'banners' ? bannerColumns : contentColumns}
+                    columns={contentColumns}
                     data={
-                        activeTab === 'banners'
-                            ? banners
-                            : activeTab === 'policies'
-                                ? contentItems.filter(item => ['privacy', 'terms'].includes(item.type))
-                                : contentItems.filter(item => !['privacy', 'terms'].includes(item.type))
+                        activeTab === 'policies'
+                            ? contentItems.filter(item => ['privacy', 'terms'].includes(item.type))
+                            : contentItems.filter(item => !['privacy', 'terms'].includes(item.type))
                     }
                     pagination
                     progressPending={loading}

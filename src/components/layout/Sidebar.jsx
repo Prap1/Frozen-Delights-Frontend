@@ -1,5 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchVendorRequests } from '../../features/users/userSlice';
+import { useEffect } from 'react';
 import {
     FaTachometerAlt,
     FaBoxOpen,
@@ -15,7 +17,15 @@ import {
 
 const Sidebar = () => {
     const location = useLocation();
+    const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
+    const { vendorRequests } = useSelector((state) => state.users);
+
+    useEffect(() => {
+        if (user && user.role === 'admin') {
+            dispatch(fetchVendorRequests());
+        }
+    }, [dispatch, user]);
 
     const adminMenuItems = [
         { path: '/admin/dashboard', name: 'Dashboard', icon: <FaTachometerAlt /> },
@@ -31,11 +41,10 @@ const Sidebar = () => {
 
     const vendorMenuItems = [
         { path: '/vendor/dashboard', name: 'Dashboard', icon: <FaTachometerAlt /> },
-        { path: '/vendor/products', name: 'My Products', icon: <FaBoxOpen /> }, // Reuse or redirect to dashboard
+        { path: '/vendor/products', name: 'My Products', icon: <FaBoxOpen /> },
         { path: '/vendor/orders', name: 'Orders', icon: <FaClipboardList /> },
-        { path: '/vendor/pricing', name: 'Pricing & Offers', icon: <FaTags /> },
-        { path: '/vendor/delivery', name: 'Delivery', icon: <FaTruck /> },
-        { path: '/vendor/feedback', name: 'Feedback', icon: <FaStar /> },
+        { path: '/vendor/discounts', name: 'Pricing & Offers', icon: <FaTags /> },
+        { path: '/vendor/reviews', name: 'Feedback', icon: <FaStar /> },
     ];
 
     const menuItems = user?.role === 'admin' ? adminMenuItems : (user?.role === 'vendor' ? vendorMenuItems : []);
@@ -59,7 +68,12 @@ const Sidebar = () => {
                                         }`}
                                 >
                                     <span className="text-xl mr-3">{item.icon}</span>
-                                    <span className="font-medium">{item.name}</span>
+                                    <span className="font-medium mr-auto">{item.name}</span>
+                                    {item.name === 'Vendor Requests' && vendorRequests.length > 0 && (
+                                        <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                            {vendorRequests.length}
+                                        </span>
+                                    )}
                                 </Link>
                             </li>
                         );

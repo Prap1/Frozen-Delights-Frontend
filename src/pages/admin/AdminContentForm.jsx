@@ -3,9 +3,8 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import {
-    createBanner, updateBanner,
     createContent, updateContent,
-    fetchBanners, fetchAllContent,
+    fetchAllContent,
     resetContentState
 } from '../../features/content/contentSlice';
 import Loader from '../../components/ui/Loader';
@@ -14,14 +13,16 @@ import { FaArrowLeft } from 'react-icons/fa';
 const AdminContentForm = () => {
     const { id } = useParams();
     const [searchParams] = useSearchParams();
-    const mode = searchParams.get('mode') || 'content'; // 'banner' or 'content'
-    const tab = searchParams.get('tab'); // 'banners', 'content', 'policies' - purely for navigation back
+    const tab = searchParams.get('tab'); // 'content', 'policies' - purely for navigation back
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { banners, contentItems, loading, success, error } = useSelector((state) => state.content);
-    const { register, handleSubmit, setValue, reset, watch } = useForm();
+    const { contentItems, loading, success, error } = useSelector((state) => state.content);
+    const { register, handleSubmit, setValue, watch } = useForm();
     const [isEdit, setIsEdit] = useState(false);
+
+    const [imagePreview, setImagePreview] = useState(null);
+    const [selectedImage, setSelectedImage] = useState(null);
 
     // Watch type to conditionally render fields
     const watchedType = watch('type');
@@ -29,28 +30,21 @@ const AdminContentForm = () => {
     useEffect(() => {
         if (id) {
             setIsEdit(true);
-            if (mode === 'banner') {
-                if (banners.length === 0) dispatch(fetchBanners());
-                const banner = banners.find(b => b._id === id);
-                if (banner) {
-                    Object.keys(banner).forEach(key => setValue(key, banner[key]));
-                }
-            } else {
-                if (contentItems.length === 0) dispatch(fetchAllContent());
-                const item = contentItems.find(c => c._id === id);
-                if (item) {
-                    Object.keys(item).forEach(key => setValue(key, item[key]));
+            if (contentItems.length === 0) dispatch(fetchAllContent());
+            const item = contentItems.find(c => c._id === id);
+            if (item) {
+                Object.keys(item).forEach(key => setValue(key, item[key]));
+                if (item.image) {
+                    setImagePreview(item.image);
                 }
             }
         } else {
             // Defaults for new items
-            if (mode === 'content') {
-                // Set default type based on previous tab if possible, or default to announcement
-                if (tab === 'policies') setValue('type', 'privacy');
-                else setValue('type', 'announcement');
-            }
+            // Set default type based on previous tab if possible, or default to announcement
+            if (tab === 'policies') setValue('type', 'privacy');
+            else setValue('type', 'announcement');
         }
-    }, [id, mode, banners, contentItems, dispatch, setValue, tab]);
+    }, [id, contentItems, dispatch, setValue, tab]);
 
     useEffect(() => {
         if (success) {
@@ -59,23 +53,37 @@ const AdminContentForm = () => {
         }
     }, [success, dispatch, navigate]);
 
-    const onSubmit = (data) => {
-        if (mode === 'banner') {
-            if (isEdit) {
-                dispatch(updateBanner({ id, bannerData: data }));
-            } else {
-                dispatch(createBanner(data));
-            }
-        } else {
-            if (isEdit) {
-                dispatch(updateContent({ id, contentData: data }));
-            } else {
-                dispatch(createContent(data));
-            }
+    const handleImageChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setSelectedImage(file);
+            setImagePreview(URL.createObjectURL(file));
         }
     };
 
-    if (loading && isEdit && ((mode === 'banner' && banners.length === 0) || (mode === 'content' && contentItems.length === 0))) {
+    const onSubmit = (data) => {
+        const formData = new FormData();
+
+        // Append all text fields
+        Object.keys(data).forEach(key => {
+            if (key !== 'image') { // Skip image key from text inputs
+                formData.append(key, data[key]);
+            }
+        });
+
+        // Append image file if selected
+        if (selectedImage) {
+            formData.append('image', selectedImage);
+        }
+
+        if (isEdit) {
+            dispatch(updateContent({ id, contentData: formData }));
+        } else {
+            dispatch(createContent(formData));
+        }
+    };
+
+    if (loading && isEdit && contentItems.length === 0) {
         return <Loader />;
     }
 
@@ -90,7 +98,7 @@ const AdminContentForm = () => {
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 max-w-3xl mx-auto">
                 <h1 className="text-2xl font-bold text-gray-800 mb-6">
-                    {isEdit ? 'Edit' : 'Add New'} {mode === 'banner' ? 'Banner' : 'Content'}
+                    {isEdit ? 'Edit' : 'Add New'} Content
                 </h1>
 
                 {error && (
@@ -99,96 +107,89 @@ const AdminContentForm = () => {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    {mode === 'banner' ? (
-                        <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                                    <input {...register('title', { required: 'Title is required' })} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
-                                    <input type="number" {...register('order')} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" defaultValue={0} />
-                                </div>
-                            </div>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" encType="multipart/form-data">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                            <select {...register('type', { required: true })} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
+                                <option value="announcement">Announcement</option>
+                                <option value="feature">Feature</option>
+                                <option value="about">About Section</option>
+                                <option value="hero">Hero Section</option>
+                                <option value="highlight">Highlight Section</option>
+                                <option value="variant">Ice Cream Variant</option>
+                                <option value="faq">FAQ</option>
+                                <option value="privacy">Privacy Policy</option>
+                                <option value="terms">Terms of Service</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                            <input type="number" {...register('order')} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" defaultValue={0} />
+                        </div>
+                    </div>
 
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            {(watchedType === 'privacy' || watchedType === 'terms') ? 'Title' : (watchedType === 'hero' || watchedType === 'highlight' || watchedType === 'variant') ? 'Title / Heading' : 'Title (Question for FAQ)'}
+                        </label>
+                        <input {...register('title', { required: 'Title is required' })} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
+                    </div>
+
+                    {(watchedType === 'hero' || watchedType === 'highlight') && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Subtitle</label>
-                                <textarea {...register('subtitle', { required: 'Subtitle is required' })} rows={3} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
+                                <label className="block text-sm font-medium text-gray-700 mb-1">CTA Text</label>
+                                <input {...register('ctaText')} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
                             </div>
-
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                                <input {...register('image', { required: 'Image URL is required' })} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="https://..." />
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Link</label>
+                                <input {...register('link')} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
                             </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">CTA Text</label>
-                                    <input {...register('cta', { required: 'CTA Text is required' })} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Link</label>
-                                    <input {...register('link', { required: 'Link is required' })} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                                    <select {...register('type', { required: true })} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2">
-                                        <option value="announcement">Announcement</option>
-                                        <option value="feature">Feature</option>
-                                        <option value="about">About Section</option>
-                                        <option value="faq">FAQ</option>
-                                        <option value="privacy">Privacy Policy</option>
-                                        <option value="terms">Terms of Service</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
-                                    <input type="number" {...register('order')} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" defaultValue={0} />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    {(watchedType === 'privacy' || watchedType === 'terms') ? 'Title' : 'Title (Question for FAQ)'}
-                                </label>
-                                <input {...register('title', { required: 'Title is required' })} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    {(watchedType === 'privacy' || watchedType === 'terms') ? 'Content (Full Text)' : 'Content (Answer for FAQ)'}
-                                </label>
-                                <textarea
-                                    {...register('content', { required: 'Content is required' })}
-                                    rows={(watchedType === 'privacy' || watchedType === 'terms') ? 20 : 6}
-                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2 font-mono text-sm"
-                                    placeholder="Enter content here..."
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Category (for FAQs) / Subtitle</label>
-                                <input {...register('subtitle')} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Image URL (Optional)</label>
-                                <input {...register('image')} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="https://..." />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Icon (Optional, visual only)</label>
-                                <input {...register('icon')} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. 🍦" />
-                            </div>
-                        </>
+                        </div>
                     )}
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            {(watchedType === 'privacy' || watchedType === 'terms') ? 'Content (Full Text)' : (watchedType === 'hero' || watchedType === 'highlight' || watchedType === 'variant') ? 'Description' : 'Content (Answer for FAQ)'}
+                        </label>
+                        <textarea
+                            {...register('content', { required: 'Content is required' })}
+                            rows={(watchedType === 'privacy' || watchedType === 'terms') ? 20 : 6}
+                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2 font-mono text-sm"
+                            placeholder="Enter content here..."
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Category (for FAQs) / Subtitle</label>
+                        <input {...register('subtitle')} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                        <div className="flex items-center space-x-4">
+                            {imagePreview && (
+                                <img src={imagePreview} alt="Preview" className="h-20 w-20 object-cover rounded-md border border-gray-300" />
+                            )}
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="w-full text-sm text-slate-500
+                                  file:mr-4 file:py-2 file:px-4
+                                  file:rounded-full file:border-0
+                                  file:text-sm file:font-semibold
+                                  file:bg-blue-50 file:text-blue-700
+                                  hover:file:bg-blue-100"
+                            />
+                        </div>
+                    </div>
+
+                    {/* <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Icon (Optional, visual only) / Variant Image URL</label>
+                        <input {...register('icon')} className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. 🍦" />
+                    </div> */}
 
                     <div className="flex items-center bg-gray-50 p-3 rounded-md border border-gray-100">
                         <input type="checkbox" {...register('isActive')} id="isActive" className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" defaultChecked />

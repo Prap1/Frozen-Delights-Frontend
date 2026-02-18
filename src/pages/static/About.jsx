@@ -69,19 +69,19 @@ const About = () => {
 
                 {/* Values Section (Static for now to add flair) */}
                 <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="text-center p-6 bg-blue-50 rounded-xl">
-                        <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🌿</div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">Fresh Ingredients</h3>
+                    <div className="text-center p-6 bg-[#FDF2F2] rounded-xl hover:shadow-lg transition-shadow">
+                        <div className="w-16 h-16 bg-white text-[#E65555] rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">🌿</div>
+                        <h3 className="text-xl font-bold text-[#0D1E32] mb-2">Fresh Ingredients</h3>
                         <p className="text-gray-600">We source only the finest, freshest ingredients for our desserts.</p>
                     </div>
-                    <div className="text-center p-6 bg-purple-50 rounded-xl">
-                        <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">✨</div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">Innovative Flavors</h3>
+                    <div className="text-center p-6 bg-[#FDF2F2] rounded-xl hover:shadow-lg transition-shadow">
+                        <div className="w-16 h-16 bg-white text-[#E65555] rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">✨</div>
+                        <h3 className="text-xl font-bold text-[#0D1E32] mb-2">Innovative Flavors</h3>
                         <p className="text-gray-600">Constantly experimenting to bring you unique and delightful taste experiences.</p>
                     </div>
-                    <div className="text-center p-6 bg-pink-50 rounded-xl">
-                        <div className="w-16 h-16 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">❤️</div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">Made with Love</h3>
+                    <div className="text-center p-6 bg-[#FDF2F2] rounded-xl hover:shadow-lg transition-shadow">
+                        <div className="w-16 h-16 bg-white text-[#E65555] rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">❤️</div>
+                        <h3 className="text-xl font-bold text-[#0D1E32] mb-2">Made with Love</h3>
                         <p className="text-gray-600">Every batch is crafted with care and passion for our customers.</p>
                     </div>
                 </div>

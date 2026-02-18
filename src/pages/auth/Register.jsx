@@ -9,6 +9,7 @@ import {
 import Spinner from '../../components/ui/Spinner';
 import Loader from '../../components/ui/Loader';
 import { toast } from 'react-toastify';
+import image from "../../assets/image.png"
 
 const Register = () => {
     const [step, setStep] = useState(1); // 1 = form, 2 = OTP
@@ -96,87 +97,163 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-            <div className="max-w-md w-full space-y-8">
-                {loading && <div className="flex justify-center"><Loader /></div>}
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        {step === 1 ? 'Create your account' : 'Verify Email'}
-                    </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
-                        Or{' '}
-                        <Link
-                            to="/login"
-                            className="font-medium text-blue-600 hover:text-blue-500"
-                        >
-                            sign in to existing account
+        <div className="min-h-screen flex bg-white font-['Poppins']">
+            {/* Left Side - Form */}
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-16">
+                <div className="w-full max-w-md space-y-8">
+                    {loading && <div className="flex justify-center mb-4"><Loader /></div>}
+
+                    <div className="text-center sm:text-left">
+                        <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                            {step === 1 ? 'Create Account' : 'Verify Your Email'}
+                        </h2>
+                        <p className="mt-2 text-sm text-gray-600">
+                            {step === 1
+                                ? "Join us today and enjoy exclusive frozen delights!"
+                                : "We've sent a verification code to your email."}
+                        </p>
+                    </div>
+
+                    {/* ===================== STEP 1 ===================== */}
+                    {step === 1 && (
+                        <form className="mt-8 space-y-6" onSubmit={handleInitiate}>
+                            <div className="space-y-5">
+                                <div>
+                                    <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Username
+                                    </label>
+                                    <input
+                                        id="username"
+                                        name="username"
+                                        type="text"
+                                        required
+                                        className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-[#E65555] focus:border-[#E65555] sm:text-sm transition-colors"
+                                        placeholder="Choose a username"
+                                        value={formData.username}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Email Address
+                                    </label>
+                                    <input
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        autoComplete="email"
+                                        required
+                                        className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-[#E65555] focus:border-[#E65555] sm:text-sm transition-colors"
+                                        placeholder="Enter your email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Password
+                                    </label>
+                                    <input
+                                        id="password"
+                                        name="password"
+                                        type="password"
+                                        autoComplete="new-password"
+                                        required
+                                        className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-[#E65555] focus:border-[#E65555] sm:text-sm transition-colors"
+                                        placeholder="Create a password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="group relative w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-[#E65555] hover:bg-[#d14040] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#E65555] disabled:opacity-50 shadow-lg hover:shadow-xl transition-all duration-200"
+                                >
+                                    {loading ? <Spinner /> : 'Create Account'}
+                                </button>
+                            </div>
+                        </form>
+                    )}
+
+                    {/* ===================== STEP 2 ===================== */}
+                    {step === 2 && (
+                        <form className="mt-8 space-y-6" onSubmit={handleVerify}>
+                            <div className="space-y-5">
+                                <div>
+                                    <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Verification Code
+                                    </label>
+                                    <input
+                                        id="otp"
+                                        name="otp"
+                                        type="text"
+                                        required
+                                        className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-[#E65555] focus:border-[#E65555] sm:text-sm transition-colors text-center tracking-[0.5em] text-lg font-bold"
+                                        placeholder="Enter OTP"
+                                        value={formData.otp}
+                                        onChange={handleChange}
+                                    />
+                                    <p className="mt-2 text-xs text-gray-500 text-center">
+                                        Please check your email inbox and spam folder.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="group relative w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-[#E65555] hover:bg-[#d14040] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#E65555] disabled:opacity-50 shadow-lg hover:shadow-xl transition-all duration-200"
+                                >
+                                    {loading ? <Spinner /> : 'Verify & Complete'}
+                                </button>
+                            </div>
+                            <div className="text-center">
+                                <button
+                                    type="button"
+                                    onClick={() => setStep(1)}
+                                    className="text-sm text-gray-500 hover:text-[#E65555] font-medium"
+                                >
+                                    Change Email / Back
+                                </button>
+                            </div>
+                        </form>
+                    )}
+
+                    <p className="mt-4 text-center text-sm text-gray-600">
+                        Already have an account?{' '}
+                        <Link to="/login" className="font-bold text-[#E65555] hover:text-[#d14040]">
+                            Sign In
                         </Link>
                     </p>
                 </div>
+            </div>
 
-                {/* ===================== STEP 1 ===================== */}
-                {step === 1 && (
-                    <form className="space-y-6" onSubmit={handleInitiate}>
-                        <input
-                            name="username"
-                            required
-                            placeholder="Username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border rounded-md"
-                        />
-
-                        <input
-                            name="email"
-                            type="email"
-                            required
-                            placeholder="Email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border rounded-md"
-                        />
-
-                        <input
-                            name="password"
-                            type="password"
-                            required
-                            placeholder="Password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border rounded-md"
-                        />
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full flex justify-center items-center bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
-                        >
-                            {loading ? <Spinner /> : 'Send OTP'}
-                        </button>
-                    </form>
-                )}
-
-                {/* ===================== STEP 2 ===================== */}
-                {step === 2 && (
-                    <form className="space-y-6" onSubmit={handleVerify}>
-                        <input
-                            name="otp"
-                            required
-                            placeholder="Enter OTP"
-                            value={formData.otp}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border rounded-md"
-                        />
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full flex justify-center items-center bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
-                        >
-                            {loading ? <Spinner /> : 'Verify & Register'}
-                        </button>
-                    </form>
-                )}
+            {/* Right Side - Image */}
+            <div className="hidden lg:block relative w-1/2 bg-gray-900">
+                <img
+                    className="absolute inset-0 w-full h-full object-cover opacity-90"
+                    src={image}
+                    alt="Ice Cream background"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+                <div className="absolute bottom-0 left-0 p-16 text-white max-w-xl">
+                    <h3 className="text-4xl font-bold mb-4">Join the Sweetest Community!</h3>
+                    <p className="text-lg text-gray-200">
+                        Sign up today and get exclusive access to our newest flavors, special offers, and more.
+                    </p>
+                    <Link to="/" className="mt-8 inline-flex items-center text-white font-medium hover:underline group">
+                        Back to Home <span className="ml-2 group-hover:translate-x-1 transition-transform">&rarr;</span>
+                    </Link>
+                </div>
+                {/* Decorative Top Title */}
+                <div className="absolute top-12 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm px-6 py-2 rounded-full">
+                    <span className="text-gray-900 font-bold tracking-widest uppercase text-sm">Join Us</span>
+                </div>
             </div>
         </div>
     );

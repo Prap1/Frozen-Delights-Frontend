@@ -138,7 +138,7 @@ const ProductDetails = () => {
                             <button
                                 onClick={addToCartHandler}
                                 disabled={product.Stock < 1}
-                                className={`ml-4 flex-1 bg-blue-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${product.Stock < 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`ml-4 flex-1 bg-[#E65555] border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-[#d14040] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#E65555] ${product.Stock < 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 Add to bag
                             </button>
@@ -148,7 +148,7 @@ const ProductDetails = () => {
                         <div className="mt-8">
                             <button
                                 onClick={() => setOpenReview(!openReview)}
-                                className="text-blue-600 hover:text-blue-800 font-medium"
+                                className="text-[#E65555] hover:text-[#d14040] font-medium"
                             >
                                 {openReview ? 'Cancel Review' : 'Write a Review'}
                             </button>
@@ -179,7 +179,7 @@ const ProductDetails = () => {
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
                                     <textarea
                                         rows="4"
-                                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-[#E65555] focus:border-[#E65555]"
                                         value={comment}
                                         onChange={(e) => setComment(e.target.value)}
                                         placeholder="Share your experience..."
@@ -188,7 +188,7 @@ const ProductDetails = () => {
                                 <button
                                     onClick={submitReviewHandler}
                                     disabled={!isAuthenticated || loading}
-                                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="bg-[#E65555] text-white px-4 py-2 rounded-md hover:bg-[#d14040] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     Submit Review
                                 </button>
@@ -207,7 +207,7 @@ const ProductDetails = () => {
                                 <div key={index} className="bg-white border text-gray-500 border-gray-200 rounded-lg p-6 shadow-sm">
                                     <div className="flex items-center mb-4">
                                         <div className="flex-shrink-0">
-                                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600">
+                                            <div className="h-10 w-10 rounded-full bg-pink-100 flex items-center justify-center font-bold text-[#E65555]">
                                                 {review.name ? review.name[0].toUpperCase() : 'U'}
                                             </div>
                                         </div>

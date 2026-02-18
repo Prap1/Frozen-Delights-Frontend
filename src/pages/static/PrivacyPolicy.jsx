@@ -27,7 +27,7 @@ const PrivacyPolicy = () => {
         return (
             <div className="bg-white min-h-screen py-12 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-4xl mx-auto">
-                    <h1 className="text-3xl font-extrabold text-gray-900 mb-8 text-center uppercase tracking-wide">
+                    <h1 className="text-3xl font-extrabold text-[#0D1E32] mb-8 text-center uppercase tracking-wide">
                         {privacyContent.title}
                     </h1>
                     <div
@@ -43,7 +43,7 @@ const PrivacyPolicy = () => {
     return (
         <div className="bg-white min-h-screen py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto">
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-8 text-center uppercase tracking-wide">
+                <h1 className="text-3xl font-extrabold text-[#0D1E32] mb-8 text-center uppercase tracking-wide">
                     Privacy Policy
                 </h1>
 
@@ -51,7 +51,7 @@ const PrivacyPolicy = () => {
                     {/* Disclaimer */}
                     <section className="bg-gray-50 p-4 rounded-lg border border-gray-100 italic text-gray-600">
                         <p>
-                            <span className="font-semibold text-gray-800 not-italic">Disclaimer:</span> In case of any discrepancy or difference, the English version will take precedence over the translation.
+                            <span className="font-semibold text-[#0D1E32] not-italic">Disclaimer:</span> In case of any discrepancy or difference, the English version will take precedence over the translation.
                         </p>
                     </section>
 
@@ -67,7 +67,7 @@ const PrivacyPolicy = () => {
 
                     {/* Collection of Information */}
                     <section>
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">Collection of Your Information</h2>
+                        <h2 className="text-xl font-bold text-[#0D1E32] mb-4">Collection of Your Information</h2>
                         <p>
                             When you use our Platform, we collect and store your information which is provided by you from time to time. Once you give us your personal data, you are not anonymous to us. Where possible, we indicate which fields are required and which fields are optional. You always have the option to not provide data by choosing not to use a particular service, product or feature on the Platform.
                         </p>

@@ -1,167 +1,122 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaChevronRight } from "react-icons/fa";
+import { FaPlus, FaMinus } from "react-icons/fa"; // Changed icons to Plus/Minus
 import { useDispatch, useSelector } from "react-redux";
-import { useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { fetchContent } from "../../features/content/contentSlice";
 import Loader from "../../components/ui/Loader";
 
 const FAQ = () => {
     const dispatch = useDispatch();
-    const [searchParams, setSearchParams] = useSearchParams();
     const { contentItems, loading, error } = useSelector((state) => state.content);
 
     // Filter only FAQs
     const faqItems = contentItems.filter(item => item.type === 'faq' && item.isActive);
 
-    // Group by Category (using subtitle as category)
-    const groupedFAQs = faqItems.reduce((acc, item) => {
-        const category = item.subtitle || "General";
-        if (!acc[category]) {
-            acc[category] = [];
-        }
-        acc[category].push(item);
-        return acc;
-    }, {});
-
-    const categories = Object.keys(groupedFAQs);
-
-    const [activeCategory, setActiveCategory] = useState(null);
     const [expandedQuestion, setExpandedQuestion] = useState(null);
 
     useEffect(() => {
         dispatch(fetchContent('faq'));
     }, [dispatch]);
 
-    useEffect(() => {
-        if (categories.length > 0) {
-            // Check for catalog param (ID or Category Name)
-            const catalogParam = searchParams.get('catalog');
-            let foundCategory = categories[0];
-
-            if (catalogParam) {
-                // Try finding by exact category name match OR by item ID within category
-                const cat = categories.find(c => c === catalogParam || groupedFAQs[c].some(item => item._id === catalogParam));
-                if (cat) {
-                    foundCategory = cat;
-                }
-            }
-
-            if (!activeCategory || (catalogParam && activeCategory !== foundCategory)) {
-                setActiveCategory(foundCategory);
-            }
-        }
-    }, [categories.length, searchParams, activeCategory, groupedFAQs]);
-
     const toggleQuestion = (index) => {
         setExpandedQuestion(expandedQuestion === index ? null : index);
-    };
-
-    const handleCategoryClick = (category) => {
-        setActiveCategory(category);
-        setExpandedQuestion(null);
-
-        const firstItemId = groupedFAQs[category][0]?._id;
-        if (firstItemId) {
-            setSearchParams({ catalog: firstItemId, view: 'CATALOG' });
-        }
     };
 
     if (loading) return <Loader />;
     if (error) return <div className="p-10 text-center text-red-600">Error loading FAQs: {error}</div>;
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans">
-            {/* Header */}
-            <div className="bg-blue-600 text-white py-4 shadow-md">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                    <h1 className="text-xl font-medium">Help Center</h1>
-                    <div className="relative hidden md:block w-96"></div>
+        <div className="min-h-screen bg-white font-['Poppins']">
+            {/* Header Section */}
+            <div className="relative pt-16 pb-24 flex flex-col items-center justify-center overflow-hidden">
+                {/* Decorative Elements */}
+                <div className="absolute top-10 right-[15%] w-24 h-24 rounded-full border-4 border-yellow-400 opacity-20 pointer-events-none"></div>
+                {/* Yellow Circle decoration placeholder */}
+                <svg className="absolute top-12 right-[20%] w-32 h-32 text-yellow-400 opacity-80 pointer-events-none" viewBox="0 0 100 100" fill="currentColor">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" />
+                </svg>
+                {/* Zigzag decoration */}
+                <svg className="absolute top-8 left-[30%] w-16 h-16 text-pink-300 pointer-events-none" viewBox="0 0 100 20" fill="none" stroke="currentColor" strokeWidth="5">
+                    <path d="M0 10 L10 0 L20 10 L30 0 L40 10 L50 0 L60 10 L70 0 L80 10 L90 0 L100 10" />
+                </svg>
+                {/* Ring decoration */}
+                <div className="absolute top-24 left-[28%] w-8 h-8 rounded-full border-4 border-gray-600 pointer-events-none"></div>
+
+
+                <h1 className="text-6xl font-extrabold text-[#0D1E32] mb-4 relative z-10">FAQ</h1>
+
+                <div className="flex items-center space-x-2 text-sm font-medium z-10">
+                    <Link to="/" className="text-[#E65555] hover:underline">Home</Link>
+                    <span className="text-gray-400 font-bold">&gt;</span>
+                    <span className="text-[#E65555]">FAQ</span>
+                </div>
+
+                {/* Wave Separator at bottom of header */}
+                <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
+                    <svg className="relative block w-full h-[60px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                        <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className="fill-white opacity-20"></path>
+                    </svg>
+                    {/* Using a curve similar to reference - recreating clean white look requires background checking. 
+                         Assuming main bg is white, this header section serves as the top part. 
+                         Actually, the reference has a white background with a wave separating the header area? 
+                         Let's keep it simple: Clean white background for the whole page, header elements floating.
+                     */}
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex flex-col md:flex-row gap-6">
+            {/* Main Content */}
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+                <div className="text-center mb-12">
+                    <h2 className="text-4xl font-bold text-[#0D1E32]">
+                        General <span className="text-[#E65555]">Question</span>
+                    </h2>
+                    <p className="mt-4 text-gray-500 max-w-2xl mx-auto">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo.
+                    </p>
+                </div>
 
-                    {/* Sidebar */}
-                    <div className="w-full md:w-1/4 bg-white shadow-sm rounded-lg overflow-hidden h-fit">
-                        <div className="border-b border-gray-100 last:border-0 pb-2">
-                            <h3 className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Help Topics</h3>
-                            <ul className="mb-2">
-                                {categories.length > 0 ? categories.map((cat) => (
-                                    <li key={cat}>
-                                        <button
-                                            onClick={() => handleCategoryClick(cat)}
-                                            className={`w-full text-left px-5 py-3 text-sm flex justify-between items-center hover:bg-blue-50 transition-colors ${activeCategory === cat
-                                                ? "bg-blue-50 text-blue-600 font-medium border-l-4 border-blue-600 pl-4"
-                                                : "text-gray-700 hover:text-blue-600"
-                                                }`}
+                {/* FAQ Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    {faqItems.length > 0 ? (
+                        faqItems.map((item, index) => (
+                            <div key={item._id} className="mb-2">
+                                <button
+                                    onClick={() => toggleQuestion(index)}
+                                    className={`w-full flex justify-between items-center px-6 py-4 rounded-lg transition-all duration-300 shadow-sm ${expandedQuestion === index
+                                            ? "bg-[#E65555] text-white"
+                                            : "bg-[#FDF2F2] text-[#E65555] hover:bg-red-100" // Light pink bg for closed
+                                        }`}
+                                >
+                                    <span className={`font-semibold text-left text-lg ${expandedQuestion === index ? "text-white" : "text-[#E65555]"}`}>
+                                        {item.title}
+                                    </span>
+                                    <span className="ml-4 flex-shrink-0">
+                                        {expandedQuestion === index ? <FaMinus /> : <FaPlus />}
+                                    </span>
+                                </button>
+                                <AnimatePresence>
+                                    {expandedQuestion === index && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: "auto", opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.3 }}
+                                            className="overflow-hidden"
                                         >
-                                            {cat}
-                                        </button>
-                                    </li>
-                                )) : (
-                                    <li className="px-5 py-3 text-sm text-gray-500">No topics found. (Check Debug Bar)</li>
-                                )}
-                            </ul>
-                        </div>
-                    </div>
-
-                    {/* Main Content */}
-                    <div className="w-full md:w-3/4 flex flex-col">
-                        <div className="bg-white shadow-sm rounded-lg p-6 min-h-[500px]">
-                            {/* Breadcrumb / Header */}
-                            <div className="mb-6">
-                                <p className="text-xs text-gray-500 mb-2">Help Centre {'>'} {activeCategory || '...'}</p>
-                                <h2 className="text-2xl font-semibold text-gray-800">{activeCategory || 'Select a Topic'}</h2>
+                                            <div className="px-6 py-6 text-gray-600 bg-white leading-relaxed text-sm border-l-2 border-[#E65555] mt-2">
+                                                {item.content}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
-
-                            {/* Questions List */}
-                            <div className="space-y-4">
-                                {activeCategory && groupedFAQs[activeCategory] ? (
-                                    groupedFAQs[activeCategory].map((item, index) => (
-                                        <div key={item._id} className="border-b border-gray-100 last:border-0 pb-4 last:pb-0">
-                                            <button
-                                                onClick={() => toggleQuestion(index)}
-                                                className="w-full text-left flex justify-between items-start focus:outline-none group"
-                                            >
-                                                <span className={`text-base ${expandedQuestion === index ? 'text-blue-600 font-medium' : 'text-gray-700 group-hover:text-blue-600'}`}>
-                                                    {item.title}
-                                                </span>
-                                                <span className={`ml-2 transform transition-transform duration-200 text-gray-400 ${expandedQuestion === index ? 'rotate-90 text-blue-600' : ''}`}>
-                                                    <FaChevronRight size={14} />
-                                                </span>
-                                            </button>
-                                            <AnimatePresence>
-                                                {expandedQuestion === index && (
-                                                    <motion.div
-                                                        initial={{ height: 0, opacity: 0 }}
-                                                        animate={{ height: "auto", opacity: 1 }}
-                                                        exit={{ height: 0, opacity: 0 }}
-                                                        className="overflow-hidden"
-                                                    >
-                                                        <p className="mt-3 text-sm text-gray-600 leading-relaxed pl-1 whitespace-pre-wrap">
-                                                            {item.content}
-                                                        </p>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-10 text-gray-500">
-                                        <p>Select a topic to view details.</p>
-                                    </div>
-                                )}
-                            </div>
+                        ))
+                    ) : (
+                        <div className="col-span-2 text-center text-gray-500">
+                            No FAQs found.
                         </div>
-
-                        {/* Footer / Postal Address Note */}
-                        <div className="mt-8 text-center text-gray-500 text-xs">
-                            <p>Want to reach us old style? Here is our <span className="text-blue-600 cursor-pointer hover:underline">postal address</span></p>
-                        </div>
-                    </div>
-
+                    )}
                 </div>
             </div>
         </div>

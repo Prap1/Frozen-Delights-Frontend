@@ -38,6 +38,10 @@ import AdminContentForm from './pages/admin/AdminContentForm';
 import BecomeVendor from './pages/vendor/BecomeVendor';
 import AdminVendorRequests from './pages/admin/AdminVendorRequests';
 import VendorOrders from './pages/vendor/VendorOrders';
+import VendorProductList from './pages/vendor/VendorProductList';
+import VendorDiscounts from './pages/vendor/VendorDiscounts';
+import VendorReviews from './pages/vendor/VendorReviews';
+import VendorDelivery from './pages/vendor/VendorDelivery';
 import AdminOrders from './pages/admin/AdminOrders';
 
 import Bestsellers from './pages/promotional/Bestsellers';
@@ -121,6 +125,7 @@ function App() {
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/products" element={<AdminProducts />} />
                 <Route path="/admin/product/new" element={<ProductForm />} />
+                <Route path="/admin/product/edit/:id" element={<ProductForm />} />
                 <Route path="/admin/categories" element={<AdminCategories />} />
                 <Route path="/admin/discounts" element={<AdminDiscounts />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
@@ -135,9 +140,13 @@ function App() {
               {/* VENDOR */}
               <Route element={<ProtectedRoute isVendor />}>
                 <Route path="/vendor/dashboard" element={<VendorDashboard />} />
-                <Route path="/vendor/products" element={<VendorDashboard />} /> {/* Reusing Dashboard for now or create new list */}
+                <Route path="/vendor/products" element={<VendorProductList />} />
                 <Route path="/vendor/product/new" element={<ProductForm />} />
+                <Route path="/vendor/product/edit/:id" element={<ProductForm />} />
                 <Route path="/vendor/orders" element={<VendorOrders />} />
+                <Route path="/vendor/discounts" element={<VendorDiscounts />} />
+                <Route path="/vendor/reviews" element={<VendorReviews />} />
+                <Route path="/vendor/delivery" element={<VendorDelivery />} />
               </Route>
             </Routes>
           </main>

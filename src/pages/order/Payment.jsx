@@ -8,6 +8,9 @@ import CheckoutSteps from './CheckoutSteps';
 import { clearCart } from '../../features/cart/cartSlice';
 import Swal from 'sweetalert2';
 
+import Loader from '../../components/ui/Loader';
+import Spinner from '../../components/ui/Spinner';
+
 const Payment = () => {
     const orderInfo = JSON.parse(sessionStorage.getItem('orderInfo'));
 
@@ -23,6 +26,7 @@ const Payment = () => {
     const [paymentMethod, setPaymentMethod] = useState('Card');
     const [savedCards, setSavedCards] = useState([]);
     const [selectedCard, setSelectedCard] = useState('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (paymentMethod === 'Card') {
@@ -57,6 +61,7 @@ const Payment = () => {
     const submitHandler = async (e) => {
         e.preventDefault();
         payBtn.current.disabled = true;
+        setLoading(true);
 
         try {
             if (paymentMethod === 'COD') {
@@ -68,6 +73,9 @@ const Payment = () => {
                 const success = await createOrder(order);
                 if (success) {
                     navigate('/success');
+                } else {
+                    setLoading(false);
+                    payBtn.current.disabled = false;
                 }
                 return;
             }
@@ -82,7 +90,10 @@ const Payment = () => {
             const { data } = await api.post('/payment/process', paymentData, config);
             const client_secret = data.client_secret;
 
-            if (!stripe || !elements) return;
+            if (!stripe || !elements) {
+                setLoading(false);
+                return;
+            }
 
             const result = await stripe.confirmCardPayment(client_secret, {
                 payment_method: {
@@ -103,6 +114,7 @@ const Payment = () => {
 
             if (result.error) {
                 payBtn.current.disabled = false;
+                setLoading(false);
                 console.error("Payment Error:", result.error);
                 Swal.fire('Payment Error', result.error.message, 'error');
                 toast.error(result.error.message);
@@ -117,8 +129,13 @@ const Payment = () => {
                     const success = await createOrder(order);
                     if (success) {
                         navigate('/success');
+                    } else {
+                        setLoading(false);
+                        payBtn.current.disabled = false;
                     }
                 } else {
+                    setLoading(false);
+                    payBtn.current.disabled = false;
                     console.warn("Payment Status not succeeded:", result.paymentIntent.status);
                     Swal.fire('Payment Failed', `Status: ${result.paymentIntent.status}`, 'error');
                     toast.error(`Payment not completed. Status: ${result.paymentIntent.status}`);
@@ -126,6 +143,7 @@ const Payment = () => {
             }
         } catch (error) {
             payBtn.current.disabled = false;
+            setLoading(false);
             console.error("Payment Process Error:", error);
             toast.error(error.response?.data?.message || "Payment processing failed");
         }
@@ -145,6 +163,7 @@ const Payment = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 py-12">
+            {loading && <Loader />}
             <CheckoutSteps activeStep={2} />
             <div className="max-w-md mx-auto mt-8 bg-white p-8 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold mb-6 text-center">Payment Info</h2>
@@ -191,9 +210,17 @@ const Payment = () => {
                     <button
                         type="submit"
                         ref={payBtn}
-                        className="w-full mt-6 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        disabled={loading}
+                        className="w-full mt-6 flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                     >
-                        {paymentMethod === 'Card' ? `Pay - ₹${orderInfo && orderInfo.totalPrice}` : 'Place Order'}
+                        {loading ? (
+                            <div className="flex items-center gap-2">
+                                <Spinner size="sm" color="white" />
+                                <span>Processing...</span>
+                            </div>
+                        ) : (
+                            paymentMethod === 'Card' ? `Pay - ₹${orderInfo && orderInfo.totalPrice}` : 'Place Order'
+                        )}
                     </button>
                 </form>
             </div>

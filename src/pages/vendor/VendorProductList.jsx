@@ -3,18 +3,18 @@ import Swal from 'sweetalert2';
 import DataTable from 'react-data-table-component';
 import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
-import { deleteProduct, resetProductState, fetchAdminProducts } from '../../features/products/productSlice';
+import { useNavigate } from 'react-router-dom';
+import { deleteProduct, resetProductState, fetchVendorProducts } from '../../features/products/productSlice';
 import { fetchCategories } from '../../features/categories/categorySlice';
 import Loader from '../../components/ui/Loader';
 
-const AdminProducts = () => {
+const VendorProductList = () => {
     const dispatch = useDispatch();
-    const navigate = useNavigate(); // Initialize navigate
+    const navigate = useNavigate();
     const { items: products, loading, success } = useSelector((state) => state.products);
 
     useEffect(() => {
-        dispatch(fetchAdminProducts());
+        dispatch(fetchVendorProducts());
         dispatch(fetchCategories());
     }, [dispatch]);
 
@@ -83,28 +83,22 @@ const AdminProducts = () => {
         },
         {
             name: 'Actions',
-            cell: (row) => {
-                console.log('Row Data:', row);
-                return (
-                    <div className="flex space-x-2">
-                        <button
-                            onClick={() => {
-                                console.log(`Navigating to: /admin/product/edit/${row._id}`);
-                                navigate(`/admin/product/edit/${row._id}`);
-                            }}
-                            className="p-2 text-blue-600 hover:text-blue-800 transition-colors"
-                        >
-                            <FaEdit />
-                        </button>
-                        <button
-                            onClick={() => handleDelete(row._id)}
-                            className="p-2 text-red-600 hover:text-red-800 transition-colors"
-                        >
-                            <FaTrash />
-                        </button>
-                    </div>
-                )
-            },
+            cell: (row) => (
+                <div className="flex space-x-2">
+                    <button
+                        onClick={() => navigate(`/vendor/product/edit/${row._id}`)}
+                        className="p-2 text-blue-600 hover:text-blue-800 transition-colors"
+                    >
+                        <FaEdit />
+                    </button>
+                    <button
+                        onClick={() => handleDelete(row._id)}
+                        className="p-2 text-red-600 hover:text-red-800 transition-colors"
+                    >
+                        <FaTrash />
+                    </button>
+                </div>
+            ),
             ignoreRowClick: true,
             allowOverflow: true,
             button: true,
@@ -126,9 +120,9 @@ const AdminProducts = () => {
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">Products</h1>
+                <h1 className="text-2xl font-bold text-gray-800">My Products</h1>
                 <button
-                    onClick={() => navigate('/admin/product/new')}
+                    onClick={() => navigate('/vendor/product/new')}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
                 >
                     <FaPlus /> Add New Product
@@ -151,4 +145,4 @@ const AdminProducts = () => {
     );
 };
 
-export default AdminProducts;
+export default VendorProductList;

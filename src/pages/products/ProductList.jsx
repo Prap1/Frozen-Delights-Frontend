@@ -57,7 +57,7 @@ const ProductList = () => {
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-bold">Filters</h3>
                             <button
-                                className="md:hidden text-blue-600 font-medium"
+                                className="md:hidden text-[#E65555] font-medium"
                                 onClick={() => setShowFilters(!showFilters)}
                             >
                                 {showFilters ? 'Hide' : 'Show'}
@@ -70,7 +70,7 @@ const ProductList = () => {
                                 <input
                                     type="text"
                                     placeholder="Search products..."
-                                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#E65555] focus:border-transparent"
                                     value={keyword}
                                     onChange={(e) => setKeyword(e.target.value)}
                                 />
@@ -81,7 +81,7 @@ const ProductList = () => {
                                 <h4 className="font-semibold mb-2">Categories</h4>
                                 <ul className="space-y-2">
                                     <li
-                                        className={`cursor-pointer ${category === "" ? "font-bold text-blue-600" : "text-gray-600"}`}
+                                        className={`cursor-pointer ${category === "" ? "font-bold text-[#E65555]" : "text-gray-600"}`}
                                         onClick={() => setCategory("")}
                                     >
                                         All
@@ -89,7 +89,7 @@ const ProductList = () => {
                                     {categories.map((cat) => (
                                         <li
                                             key={cat}
-                                            className={`cursor-pointer ${category === cat ? "font-bold text-blue-600" : "text-gray-600 hover:text-blue-500"}`}
+                                            className={`cursor-pointer ${category === cat ? "font-bold text-[#E65555]" : "text-gray-600 hover:text-[#E65555]"}`}
                                             onClick={() => setCategory(cat)}
                                         >
                                             {cat}
@@ -137,7 +137,7 @@ const ProductList = () => {
                     {/* Product Grid */}
                     <div className="md:col-span-3">
                         {products && products.length > 0 ? (
-                            <div className="grid gap-y-10 gap-x-6 grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
+                            <div className="grid gap-y-10 gap-x-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
                                 {products.filter(product => product.Stock >= 1).map((product) => (
                                     <ProductCard key={product._id} product={product} />
                                 ))}

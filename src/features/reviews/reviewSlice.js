@@ -14,6 +14,19 @@ export const fetchAllReviews = createAsyncThunk(
     }
 );
 
+// Fetch Vendor Reviews
+export const fetchVendorReviews = createAsyncThunk(
+    'reviews/fetchVendor',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/reviews/vendor/all');
+            return response.data.reviews;
+        } catch (err) {
+            return rejectWithValue(err.response?.data?.message || 'Failed to fetch reviews');
+        }
+    }
+);
+
 // Delete Review (Admin)
 export const deleteReview = createAsyncThunk(
     'reviews/delete',
@@ -52,6 +65,18 @@ const reviewSlice = createSlice({
                 state.reviews = action.payload;
             })
             .addCase(fetchAllReviews.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            // Fetch Vendor Reviews
+            .addCase(fetchVendorReviews.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchVendorReviews.fulfilled, (state, action) => {
+                state.loading = false;
+                state.reviews = action.payload;
+            })
+            .addCase(fetchVendorReviews.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })

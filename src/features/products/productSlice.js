@@ -38,6 +38,19 @@ export const fetchAdminProducts = createAsyncThunk(
     }
 );
 
+// Fetch Vendor Products
+export const fetchVendorProducts = createAsyncThunk(
+    'products/fetchVendorProducts',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get('/products/vendor');
+            return response.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data);
+        }
+    }
+);
+
 // Fetch Product Details
 export const fetchProductDetails = createAsyncThunk(
     'products/fetchDetails',
@@ -61,6 +74,23 @@ export const createProduct = createAsyncThunk(
                 withCredentials: true
             };
             const response = await api.post('/products/new', productData, config);
+            return response.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data);
+        }
+    }
+);
+
+// Update Product (Admin)
+export const updateProduct = createAsyncThunk(
+    'products/update',
+    async ({ id, productData }, { rejectWithValue }) => {
+        try {
+            const config = {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                withCredentials: true
+            };
+            const response = await api.put(`/products/${id}`, productData, config);
             return response.data;
         } catch (err) {
             return rejectWithValue(err.response?.data);
@@ -156,6 +186,20 @@ const productSlice = createSlice({
                 state.error = action.payload;
             })
 
+            // Fetch Vendor Products
+            .addCase(fetchVendorProducts.pending, (state) => {
+                state.loading = true;
+                state.items = [];
+            })
+            .addCase(fetchVendorProducts.fulfilled, (state, action) => {
+                state.loading = false;
+                state.items = action.payload.products;
+            })
+            .addCase(fetchVendorProducts.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
             // Fetch Details
             .addCase(fetchProductDetails.pending, (state) => {
                 state.loading = true;
@@ -180,6 +224,23 @@ const productSlice = createSlice({
                 state.items.push(action.payload.product);
             })
             .addCase(createProduct.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            // Update Product
+            .addCase(updateProduct.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(updateProduct.fulfilled, (state, action) => {
+                state.loading = false;
+                state.success = true;
+                const index = state.items.findIndex(item => item._id === action.payload.product._id);
+                if (index !== -1) {
+                    state.items[index] = action.payload.product;
+                }
+            })
+            .addCase(updateProduct.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })
