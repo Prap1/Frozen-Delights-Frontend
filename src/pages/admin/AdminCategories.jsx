@@ -13,6 +13,7 @@ const AdminCategories = () => {
     const { categories, loading, message } = useSelector((state) => state.categories);
     const [editId, setEditId] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [searchText, setSearchText] = useState('');
 
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
 
@@ -116,20 +117,44 @@ const AdminCategories = () => {
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">Categories</h1>
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+                    Categories
+                </h1>
+
                 <button
                     onClick={handleOpenModal}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+                    className="
+      bg-blue-600 hover:bg-blue-700 text-white
+      px-4 py-2 rounded-md
+      flex items-center justify-center gap-2
+      transition-colors
+      w-full sm:w-auto
+    "
                 >
-                    <FaPlus /> Add New Category
+                    <FaPlus className="text-sm" />
+                    <span className="hidden sm:inline">Add New Category</span>
+                    <span className="sm:hidden">Add Category</span>
                 </button>
+            </div>
+
+            <div className="mb-4">
+                <input
+                    type="text"
+                    placeholder="Search Categories..."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <DataTable
                     columns={columns}
-                    data={categories}
+                    data={categories.filter(cat => {
+                        if (!searchText) return true;
+                        return cat.name?.toLowerCase().includes(searchText.toLowerCase());
+                    })}
                     pagination
                     customStyles={customStyles}
                     highlightOnHover

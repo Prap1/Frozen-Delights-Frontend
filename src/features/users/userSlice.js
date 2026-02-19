@@ -66,6 +66,19 @@ export const toggleBlockUser = createAsyncThunk(
     }
 );
 
+// Create User (Admin)
+export const createUser = createAsyncThunk(
+    'users/create',
+    async (userData, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/users', userData);
+            return response.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data);
+        }
+    }
+);
+
 const userSlice = createSlice({
     name: 'users',
     initialState: {
@@ -89,6 +102,15 @@ const userSlice = createSlice({
             .addCase(fetchAllUsers.fulfilled, (state, action) => {
                 state.loading = false;
                 state.users = action.payload.users;
+            })
+            .addCase(createUser.fulfilled, (state, action) => {
+                state.loading = false;
+                state.users.push(action.payload.user);
+                state.message = "User created successfully";
+            })
+            .addCase(createUser.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
             })
             .addCase(fetchAllUsers.rejected, (state, action) => {
                 state.loading = false;

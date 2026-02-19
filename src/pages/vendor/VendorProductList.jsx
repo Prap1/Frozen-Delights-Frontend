@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import DataTable from 'react-data-table-component';
 import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
@@ -12,6 +12,7 @@ const VendorProductList = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { items: products, loading, success } = useSelector((state) => state.products);
+    const [searchText, setSearchText] = useState('');
 
     useEffect(() => {
         dispatch(fetchVendorProducts());
@@ -118,31 +119,64 @@ const VendorProductList = () => {
     if (loading && products.length === 0) return <Loader />;
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">My Products</h1>
+        <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+
+            {/* Header */}
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+                    My Products
+                </h1>
+
                 <button
                     onClick={() => navigate('/vendor/product/new')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+                    className="
+          bg-blue-600 hover:bg-blue-700 text-white
+          px-4 py-2 rounded-md
+          flex items-center justify-center gap-2
+          transition-colors
+          w-full sm:w-auto
+        "
                 >
-                    <FaPlus /> Add New Product
+                    <FaPlus className="text-sm" />
+                    <span className="hidden sm:inline">Add New Product</span>
+                    <span className="sm:hidden">Add Product</span>
                 </button>
             </div>
 
+            <div className="mb-4">
+                <input
+                    type="text"
+                    placeholder="Search Products..."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+            </div>
+
+            {/* Table */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <DataTable
                     columns={columns}
-                    data={products}
+                    data={products.filter(product => {
+                        if (!searchText) return true;
+                        const searchLower = searchText.toLowerCase();
+                        return (
+                            product.name?.toLowerCase().includes(searchLower) ||
+                            product.category?.toLowerCase().includes(searchLower)
+                        );
+                    })}
                     pagination
                     customStyles={customStyles}
                     highlightOnHover
                     pointerOnHover
                     progressPending={loading}
                     progressComponent={<Loader />}
+                    responsive
                 />
             </div>
         </div>
     );
+
 };
 
 export default VendorProductList;

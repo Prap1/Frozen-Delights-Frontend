@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { checkAuth } from './features/auth/authSlice';
@@ -62,11 +62,12 @@ function App() {
   const { loading, user } = useSelector(state => state.auth);
   const isAdmin = user?.role === 'admin';
   const isVendor = user?.role === 'vendor';
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // 🔥 Restore auth on refresh
   useEffect(() => {
-  dispatch(checkAuth());
-}, [dispatch]);
+    dispatch(checkAuth());
+  }, [dispatch]);
 
   // Optional loader while checking auth
   // if (loading) {
@@ -76,10 +77,17 @@ function App() {
   return (
     <>
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-      <div className="flex min-h-screen bg-gray-50">
-        {(isAdmin || isVendor) && <Sidebar />}
-        <div className="flex-1 flex flex-col min-h-screen transition-all duration-300">
-          <Navbar />
+      <div className="flex min-h-screen bg-gray-50 relative">
+        {/* Sidebar - Passed props for mobile responsiveness */}
+        {(isAdmin || isVendor) && (
+          <Sidebar
+            isSidebarOpen={isSidebarOpen}
+            toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          />
+        )}
+
+        <div className="flex-1 flex flex-col min-h-screen transition-all duration-300 w-full">
+          <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
           <main className="flex-grow">
             <Routes>

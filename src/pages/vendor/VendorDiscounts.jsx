@@ -11,6 +11,7 @@ import Modal from '../../components/ui/Modal';
 const VendorDiscounts = () => {
     const dispatch = useDispatch();
     const { discounts, loading, message } = useSelector((state) => state.discounts);
+    const [searchText, setSearchText] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState(null);
@@ -132,20 +133,44 @@ const VendorDiscounts = () => {
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">My Discounts</h1>
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+                    My Discounts
+                </h1>
+
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+                    className="
+      bg-blue-600 hover:bg-blue-700 text-white
+      px-4 py-2 rounded-md
+      flex items-center justify-center gap-2
+      transition-colors
+      w-full sm:w-auto
+    "
                 >
-                    <FaPlus /> Add New Discount
+                    <FaPlus className="text-sm" />
+                    <span className="hidden sm:inline">Add New Discount</span>
+                    <span className="sm:hidden">Add Discount</span>
                 </button>
+            </div>
+
+            <div className="mb-4">
+                <input
+                    type="text"
+                    placeholder="Search Check by Code..."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <DataTable
                     columns={columns}
-                    data={discounts}
+                    data={discounts.filter(discount => {
+                        if (!searchText) return true;
+                        return discount.code?.toLowerCase().includes(searchText.toLowerCase());
+                    })}
                     pagination
                     customStyles={customStyles}
                     highlightOnHover

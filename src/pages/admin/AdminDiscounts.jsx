@@ -138,15 +138,27 @@ const AdminDiscounts = () => {
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">Discounts</h1>
-                <button
-                    onClick={handleOpenModal}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
-                >
-                    <FaPlus /> Add New Discount
-                </button>
-            </div>
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
+  <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+    Discounts
+  </h1>
+
+  <button
+    onClick={handleOpenModal}
+    className="
+      bg-blue-600 hover:bg-blue-700 text-white
+      px-4 py-2 rounded-md
+      flex items-center justify-center gap-2
+      transition-colors
+      w-full sm:w-auto
+    "
+  >
+    <FaPlus />
+    Add New Discount
+  </button>
+</div>
+
+
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <DataTable

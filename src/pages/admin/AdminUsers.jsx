@@ -4,15 +4,17 @@ import DataTable from 'react-data-table-component';
 import { FaEdit, FaTrash, FaPlus, FaUserShield, FaUserSlash, FaUserCheck } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { fetchAllUsers, deleteUser, updateUserRole, clearUserMessage, toggleBlockUser } from '../../features/users/userSlice';
+import { fetchAllUsers, deleteUser, updateUserRole, clearUserMessage, toggleBlockUser, createUser } from '../../features/users/userSlice';
 import Loader from '../../components/ui/Loader';
 import Modal from '../../components/ui/Modal';
 
 const AdminUsers = () => {
     const dispatch = useDispatch();
     const { users, loading, message } = useSelector((state) => state.users);
+    const { user: currentUser } = useSelector((state) => state.auth);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
+    const [searchText, setSearchText] = useState('');
 
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
 
@@ -39,10 +41,10 @@ const AdminUsers = () => {
         if (editingUser) {
             dispatch(updateUserRole({ id: editingUser._id, role: data.role }));
         } else {
-            // Logic for creating new user if API supports it
-            // For now, just close modal
-            setIsModalOpen(false);
+            // Create new user
+            dispatch(createUser(data));
         }
+        setIsModalOpen(false);
     };
 
     const handleDelete = (id) => {
@@ -142,13 +144,44 @@ const AdminUsers = () => {
         <div className="p-6 bg-gray-50 min-h-screen">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-800">Users</h1>
-                {/* <button onClick={() => { setEditingUser(null); reset(); setIsModalOpen(true); }} className="bg-blue-600 ...">Add User</button> */}
+                <button
+                    onClick={() => {
+                        setEditingUser(null);
+                        reset({ role: 'user' }); // Default role
+                        setIsModalOpen(true);
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+                >
+                    <FaPlus /> Add New User
+                </button>
+            </div>
+
+            <div className="mb-4">
+                <input
+                    type="text"
+                    placeholder="Search by Name, Email or Role..."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <DataTable
                     columns={columns}
-                    data={users}
+                    data={users.filter(user => {
+                        // Hide current user
+                        if (user._id === currentUser?._id || user._id === currentUser?.id) return false;
+
+                        // Search filter
+                        if (!searchText) return true;
+                        const searchLower = searchText.toLowerCase();
+                        return (
+                            (user.username || user.name)?.toLowerCase().includes(searchLower) ||
+                            user.email?.toLowerCase().includes(searchLower) ||
+                            user.role?.toLowerCase().includes(searchLower)
+                        );
+                    })}
                     pagination
                     customStyles={customStyles}
                     highlightOnHover
@@ -161,10 +194,46 @@ const AdminUsers = () => {
             {/* Edit User Modal */}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingUser ? "Edit User Role" : "Add New User"}>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    {editingUser && (
+                    {editingUser ? (
                         <div>
                             <p className="text-sm text-gray-500 mb-2">Editing: <span className="font-semibold">{editingUser.username || editingUser.name}</span></p>
                         </div>
+                    ) : (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Username</label>
+                                <input
+                                    type="text"
+                                    {...register('username', { required: 'Username is required' })}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+                                />
+                                {errors.username && <span className="text-red-500 text-xs">{errors.username.message}</span>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Email</label>
+                                <input
+                                    type="email"
+                                    {...register('email', {
+                                        required: 'Email is required',
+                                        pattern: {
+                                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                            message: "Invalid email address"
+                                        }
+                                    })}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+                                />
+                                {errors.email && <span className="text-red-500 text-xs">{errors.email.message}</span>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Password</label>
+                                <input
+                                    type="password"
+                                    {...register('password', { required: 'Password is required', minLength: { value: 6, message: 'Password must be at least 6 characters' } })}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+                                />
+                                {errors.password && <span className="text-red-500 text-xs">{errors.password.message}</span>}
+                            </div>
+                        </>
                     )}
 
                     <div>
@@ -193,7 +262,7 @@ const AdminUsers = () => {
                             disabled={loading}
                             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                         >
-                            {loading ? 'Updating...' : 'Update Role'}
+                            {loading ? 'Processing...' : (editingUser ? 'Update Role' : 'Create User')}
                         </button>
                     </div>
                 </form>
