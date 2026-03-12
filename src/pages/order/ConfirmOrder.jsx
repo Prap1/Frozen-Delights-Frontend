@@ -12,7 +12,7 @@ const ConfirmOrder = () => {
         0
     );
 
-    const shippingCharges = subtotal > 1000 ? 0 : 200; // Free shipping > 1000
+    const shippingCharges = subtotal > 1000 ? 0 : 20; // Free shipping > 1000
     const tax = subtotal * 0.18; // 18% GST
     const discountAmount = discount ? discount.amount : 0;
     const totalPrice = subtotal + shippingCharges + tax - discountAmount;
