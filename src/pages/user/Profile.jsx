@@ -15,6 +15,10 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [imagePreview, setImagePreview] = useState(null);
 
+    const truncate = (str, n) => {
+        return str?.length > n ? str.substr(0, n - 1) + "..." : str;
+    };
+
     const { register, handleSubmit, watch, reset } = useForm({
         defaultValues: {
             username: '',
@@ -141,8 +145,9 @@ const Profile = () => {
                             )}
                         </div>
                         <div className="text-center md:text-left">
-                            <h2 className="text-2xl font-bold text-[#0D1E32]">{user.username}</h2>
-                            <p className="text-gray-500">{user.email}</p>
+                            <h2 className="text-2xl font-bold text-[#0D1E32]">{truncate(user.username, 15)}</h2>
+                            <p className="text-gray-500">{truncate(user.email, 15)}</p>
+                            {user.phone && <p className="text-gray-400 text-sm mt-1">{truncate(user.phone, 15)}</p>}
                         </div>
                     </div>
                     <button
@@ -308,9 +313,11 @@ const Profile = () => {
                             <button
                                 type="submit"
                                 disabled={authLoading}
-                                className="bg-[#E65555] text-white px-8 py-3 rounded-lg hover:bg-[#d14040] shadow-md transition disabled:opacity-50 flex items-center gap-2"
+                                className="bg-[#E65555] text-white px-8 py-3 rounded-lg hover:bg-[#d14040] shadow-md transition disabled:opacity-50 flex items-center justify-center gap-2 min-w-[150px]"
                             >
-                                {authLoading ? <Loader /> : 'Save Changes'}
+                                {authLoading ? (
+                                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                ) : 'Save Changes'}
                             </button>
                         </div>
                     )}
