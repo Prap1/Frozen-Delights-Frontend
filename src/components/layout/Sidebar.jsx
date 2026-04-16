@@ -41,7 +41,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
         let url = "";
 
         if (user.role === "admin") {
-          url = "/orders";
+          url = "/orders/admin/all";
         } else if (user.role === "vendor") {
           url = "/orders/vendor/orders"; // ✅ correct
         }
