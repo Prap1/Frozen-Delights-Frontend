@@ -19,6 +19,7 @@ const ProductDetails = () => {
     const [openReview, setOpenReview] = useState(false);
 
     useEffect(() => {
+        window.scrollTo(0, 0);
         dispatch(fetchProductDetails(id));
     }, [dispatch, id]);
 
