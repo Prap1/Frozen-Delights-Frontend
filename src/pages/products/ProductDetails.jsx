@@ -122,15 +122,16 @@ const ProductDetails = () => {
                             <div className="flex items-center border border-gray-300 rounded-md">
                                 <button
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    className="px-3 py-1 text-gray-600 hover:bg-gray-100 focus:outline-none"
+                                    className={`px-3 py-1 text-gray-600 focus:outline-none ${product.Stock < 1 || quantity <= 1 ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-100'}`}
+                                    disabled={product.Stock < 1 || quantity <= 1}
                                 >
                                     -
                                 </button>
-                                <span className="px-3 py-1 text-gray-700">{quantity}</span>
+                                <span className="px-3 py-1 text-gray-700">{product.Stock < 1 ? 0 : quantity}</span>
                                 <button
                                     onClick={() => setQuantity(Math.min(product.Stock, quantity + 1))}
-                                    className="px-3 py-1 text-gray-600 hover:bg-gray-100 focus:outline-none"
-                                    disabled={quantity >= product.Stock}
+                                    className={`px-3 py-1 text-gray-600 focus:outline-none ${quantity >= product.Stock || product.Stock < 1 ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-100'}`}
+                                    disabled={quantity >= product.Stock || product.Stock < 1}
                                 >
                                     +
                                 </button>

@@ -141,18 +141,18 @@ const Cart = () => {
                                 <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
                                     <button
                                         onClick={() => decreaseQuantity(item)}
-                                        className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 transition-colors text-gray-600 disabled:opacity-50"
-                                        disabled={item.quantity <= 1}
+                                        className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 transition-colors text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={item.quantity <= 1 || item.stock < 1}
                                     >
                                         <FaMinus className="w-3 h-3" />
                                     </button>
                                     <span className="px-4 py-1.5 font-semibold text-gray-900 min-w-[3rem] text-center border-x border-gray-300">
-                                        {item.quantity}
+                                        {item.stock < 1 ? 0 : item.quantity}
                                     </span>
                                     <button
                                         onClick={() => increaseQuantity(item)}
-                                        className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 transition-colors text-gray-600 disabled:opacity-50"
-                                        disabled={item.stock <= item.quantity}
+                                        className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 transition-colors text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={item.stock <= item.quantity || item.stock < 1}
                                     >
                                         <FaPlus className="w-3 h-3" />
                                     </button>

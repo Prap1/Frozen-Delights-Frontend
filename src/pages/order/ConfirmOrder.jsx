@@ -75,7 +75,8 @@ const ConfirmOrder = () => {
                                             <div className="flex justify-between text-base font-medium text-gray-900">
                                                 <h3>
                                                     <Link to={`/product/${item.product}`}>{item.name}</Link>
-                                                    {item.Stock < 1 && <span className="text-red-500 text-sm ml-2">(Out of Stock)</span>}
+                                                    {item.stock < 1 && <span className="text-red-500 text-sm ml-2">(Out of Stock)</span>}
+                                                    {item.stock > 0 && item.quantity > item.stock && <span className="text-red-500 text-sm ml-2">(Only {item.stock} left)</span>}
                                                 </h3>
                                                 <p>{item.quantity} x ₹{item.price} = <b>₹{item.quantity * item.price}</b></p>
                                             </div>
@@ -121,9 +122,15 @@ const ConfirmOrder = () => {
                                 </dl>
                             </div>
                             <div className="px-4 py-5 sm:px-6">
+                                {cartItems.some(item => item.stock < 1 || item.quantity > item.stock) && (
+                                    <div className="mb-4 text-sm text-red-600 font-medium">
+                                        Please remove out of stock items or adjust quantities to proceed.
+                                    </div>
+                                )}
                                 <button
                                     onClick={proceedToPayment}
-                                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 result-focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    disabled={cartItems.some(item => item.stock < 1 || item.quantity > item.stock)}
+                                    className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${cartItems.some(item => item.stock < 1 || item.quantity > item.stock) ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'}`}
                                 >
                                     Proceed to Payment
                                 </button>

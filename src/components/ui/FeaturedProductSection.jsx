@@ -100,7 +100,7 @@ const FeaturedProductSection = ({ items }) => {
                   </h3>
 
                   <p className="text-2xl sm:text-3xl font-bold text-white mb-6">
-                    $
+                    ₹
                     {typeof product.price === "number"
                       ? product.price.toFixed(2)
                       : product.price}
