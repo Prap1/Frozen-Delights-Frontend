@@ -169,6 +169,9 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.isAuthenticated = true;
                 state.user = action.payload.user;
+                if (action.payload.token) {
+                    localStorage.setItem('token', action.payload.token);
+                }
             })
             .addCase(login.rejected, (state, action) => {
                 state.loading = false;
@@ -197,6 +200,9 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.isAuthenticated = true;
                 state.user = action.payload.user;
+                if (action.payload.token) {
+                    localStorage.setItem('token', action.payload.token);
+                }
             })
             .addCase(registerVerify.rejected, (state, action) => {
                 state.loading = false;
@@ -223,6 +229,7 @@ const authSlice = createSlice({
             .addCase(logout.fulfilled, (state) => {
                 state.user = null;
                 state.isAuthenticated = false;
+                localStorage.removeItem('token');
             })
 
             /* ---------- FORGOT PASSWORD ---------- */
